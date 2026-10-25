@@ -1,0 +1,108 @@
+erDiagram
+  User ||--o| StudentProfile : has
+  User ||--o| MentorProfile : has
+  User ||--o{ PasswordResetToken : requests
+  User ||--o{ EmailVerificationToken : confirms
+  User ||--o{ RefreshToken : owns
+  User ||--o{ Notification : receives
+  User ||--o{ ScholarshipFavorite : saves
+  User ||--o{ Application : tracks
+  User ||--o{ MentorshipInquiry : sends
+  User o|--o{ AuditLog : performs
+  User o|--o{ MentorProfile : reviews
+  User o|--o{ Scholarship : verifies
+  MentorProfile ||--o{ MentorService : offers
+  MentorProfile ||--o{ Course : teaches
+  MentorService ||--o{ MentorshipInquiry : receives
+  Scholarship ||--o{ ScholarshipFavorite : saved_by
+  Scholarship ||--o{ Application : tracked_by
+  Scholarship ||--o{ ScholarshipSourceLink : sourced_by
+  ScholarshipSource ||--o{ ScholarshipSourceLink : provides
+
+  User {
+    uuid id PK
+    string email UK
+    string passwordHash
+    enum role
+  }
+  StudentProfile {
+    uuid id PK
+    uuid userId FK,UK
+    string academicLevel
+    string fieldOfStudy
+  }
+  MentorProfile {
+    uuid id PK
+    uuid userId FK,UK
+    enum verificationStatus
+    boolean allowWhatsappPublic
+  }
+  Scholarship {
+    uuid id PK
+    string slug UK
+    string title
+    enum publicationStatus
+    enum verificationStatus
+    date applicationDeadline
+  }
+  ScholarshipSource {
+    uuid id PK
+    string name
+    string officialUrl
+  }
+  ScholarshipSourceLink {
+    uuid id PK
+    uuid scholarshipId FK
+    uuid sourceId FK
+  }
+  ScholarshipFavorite {
+    uuid id PK
+    uuid userId FK
+    uuid scholarshipId FK
+  }
+  MentorService {
+    uuid id PK
+    uuid mentorProfileId FK
+    decimal price
+  }
+  Course {
+    uuid id PK
+    uuid mentorProfileId FK
+    decimal price
+  }
+  MentorshipInquiry {
+    uuid id PK
+    uuid studentUserId FK
+    uuid mentorServiceId FK
+  }
+  Application {
+    uuid id PK
+    uuid studentUserId FK
+    uuid scholarshipId FK
+    enum status
+  }
+  PasswordResetToken {
+    uuid id PK
+    uuid userId FK
+    string tokenHash UK
+  }
+  EmailVerificationToken {
+    uuid id PK
+    uuid userId FK
+    string tokenHash UK
+  }
+  RefreshToken {
+    uuid id PK
+    uuid userId FK
+    string tokenHash UK
+  }
+  Notification {
+    uuid id PK
+    uuid userId FK
+    enum type
+  }
+  AuditLog {
+    uuid id PK
+    uuid actorUserId FK
+    enum action
+  }
