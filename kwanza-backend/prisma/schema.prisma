@@ -1,0 +1,495 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  MENTOR
+  ADMIN
+}
+enum MentorVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+enum ScholarshipPublicationStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+enum ScholarshipValidityStatus {
+  UPCOMING
+  OPEN
+  CLOSED
+  UNKNOWN
+}
+enum ScholarshipSourceType {
+  OFFICIAL_INSTITUTION
+  GOVERNMENT
+  NGO
+  UNIVERSITY
+  AGGREGATOR
+  OTHER
+}
+enum CollectionMethod {
+  MANUAL
+  API
+  RSS
+  SCRAPING
+  PARTNER_IMPORT
+}
+enum IntegrationStatus {
+  ACTIVE
+  PAUSED
+  FAILED
+  DISABLED
+}
+enum ScholarshipSourceLinkStatus {
+  ACTIVE
+  SUPERSEDED
+  INVALID
+}
+enum ServicePublicationStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+enum ServiceCategory {
+  APPLICATION_SUPPORT
+  CAREER_GUIDANCE
+  STUDY_ABROAD
+  LANGUAGE_TEST
+  PREPARATION
+  ACADEMIC_MENTORSHIP
+  OTHER
+}
+enum DeliveryMode {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  IN_DISCUSSION
+  ACCEPTED
+  DECLINED
+  CLOSED
+}
+enum TokenPurpose {
+  PASSWORD_RESET
+  EMAIL_VERIFICATION
+}
+enum ApplicationStatus {
+  PLANNING
+  IN_PROGRESS
+  SUBMITTED_EXTERNALLY
+  SUBMITTED_ON_PLATFORM
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  EXPIRED
+}
+enum NotificationType {
+  SCHOLARSHIP_DEADLINE
+  SCHOLARSHIP_STATUS
+  APPLICATION_STATUS
+  MENTOR_STATUS
+  SYSTEM
+  SECURITY
+  OTHER
+}
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  UNPUBLISH
+  VERIFY
+  REJECT
+  LOGIN
+  LOGOUT
+  TOKEN_REVOKE
+  ROLE_CHANGE
+  EXPORT
+  OTHER
+}
+enum AuditEntityType {
+  USER
+  STUDENT_PROFILE
+  MENTOR_PROFILE
+  SCHOLARSHIP
+  SCHOLARSHIP_SOURCE
+  MENTOR_SERVICE
+  COURSE
+  APPLICATION
+  INQUIRY
+  TOKEN
+  SESSION
+  OTHER
+}
+enum CoursePublicationStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+enum RefreshTokenStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+model User {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String   @db.VarChar(120)
+  email               String   @unique @db.VarChar(320)
+  passwordHash        String   @db.VarChar(255)
+  role                UserRole @default(STUDENT)
+  emailVerifiedAt     DateTime? @db.Timestamptz(6)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @db.Timestamptz(6)
+
+  studentProfile      StudentProfile?
+  mentorProfile       MentorProfile?
+  reviewedMentors     MentorProfile[] @relation("MentorReviewedBy")
+  verifiedScholarships Scholarship[] @relation("ScholarshipVerifiedBy")
+  favorites           ScholarshipFavorite[]
+  passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  refreshTokens       RefreshToken[]
+  notifications       Notification[]
+  applications        Application[]
+  auditLogs           AuditLog[] @relation("AuditActor")
+  mentorshipInquiries MentorshipInquiry[] @relation("InquiryStudent")
+
+  @@index([role, isActive])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model StudentProfile {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String   @unique @db.Uuid
+  nationalityCountry    String?  @db.VarChar(100)
+  academicLevel         String?  @db.VarChar(100)
+  institution           String?  @db.VarChar(180)
+  fieldOfStudy          String?  @db.VarChar(160)
+  destinationCountries  String[] @default([])
+  languages             String[] @default([])
+  academicPreferences   Json?
+  createdAt             DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([nationalityCountry])
+  @@index([academicLevel])
+  @@index([fieldOfStudy])
+  @@map("student_profiles")
+}
+
+model MentorProfile {
+  id                    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String @unique @db.Uuid
+  bio                   String? @db.Text
+  specialties           String[] @default([])
+  qualifications        String[] @default([])
+  experienceYears       Int?
+  languages             String[] @default([])
+  whatsappNumber        String? @db.VarChar(30)
+  allowWhatsappPublic   Boolean @default(false)
+  verificationStatus    MentorVerificationStatus @default(PENDING)
+  rejectionReason       String? @db.VarChar(1000)
+  reviewedById          String? @db.Uuid
+  reviewedAt            DateTime? @db.Timestamptz(6)
+  createdAt             DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @db.Timestamptz(6)
+
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  reviewer   User? @relation("MentorReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  services   MentorService[]
+  courses    Course[]
+
+  @@index([verificationStatus, createdAt])
+  @@index([reviewedById])
+  @@map("mentor_profiles")
+}
+
+model Scholarship {
+  id                       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                    String @db.VarChar(240)
+  slug                     String @unique @db.VarChar(260)
+  description              String @db.Text
+  sponsoringInstitution    String @db.VarChar(200)
+  institutionCountry       String? @db.VarChar(100)
+  destinationCountry       String @db.VarChar(100)
+  educationLevel           String[] @default([])
+  studyAreas               String[] @default([])
+  studyMode                DeliveryMode?
+  fundingType              String @db.VarChar(100)
+  eligibilityCriteria      String? @db.Text
+  requiredDocuments        String[] @default([])
+  openingDate              DateTime? @db.Date
+  applicationDeadline      DateTime? @db.Date
+  officialUrl              String @db.VarChar(2048)
+  externalId               String? @db.VarChar(200)
+  publicationStatus        ScholarshipPublicationStatus @default(DRAFT)
+  verificationStatus       VerificationStatus @default(UNVERIFIED)
+  verifiedById             String? @db.Uuid
+  verifiedAt               DateTime? @db.Timestamptz(6)
+  sourceLastCheckedAt      DateTime? @db.Timestamptz(6)
+  createdAt                DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime @updatedAt @db.Timestamptz(6)
+
+  verifier User? @relation("ScholarshipVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sourceLinks ScholarshipSourceLink[]
+  favorites ScholarshipFavorite[]
+  applications Application[]
+
+  @@index([title])
+  @@index([sponsoringInstitution])
+  @@index([destinationCountry, publicationStatus])
+  @@index([publicationStatus, verificationStatus, applicationDeadline])
+  @@index([applicationDeadline])
+  @@index([externalId])
+  @@index([verifiedById])
+  @@index([openingDate])
+  @@map("scholarships")
+}
+
+model ScholarshipSource {
+  id                  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String @db.VarChar(180)
+  officialUrl         String @db.VarChar(2048)
+  domain              String? @db.VarChar(255)
+  sourceType          ScholarshipSourceType
+  collectionMethod    CollectionMethod @default(MANUAL)
+  integrationStatus   IntegrationStatus @default(DISABLED)
+  lastCollectedAt     DateTime? @db.Timestamptz(6)
+  lastVerifiedAt      DateTime? @db.Timestamptz(6)
+  createdAt           DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @db.Timestamptz(6)
+
+  scholarshipLinks ScholarshipSourceLink[]
+
+  @@index([integrationStatus, sourceType])
+  @@index([domain])
+  @@map("scholarship_sources")
+}
+
+model ScholarshipSourceLink {
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scholarshipId  String @db.Uuid
+  sourceId       String @db.Uuid
+  sourceUrl      String @db.VarChar(2048)
+  externalId     String? @db.VarChar(200)
+  status         ScholarshipSourceLinkStatus @default(ACTIVE)
+  importedAt     DateTime? @db.Timestamptz(6)
+  lastSeenAt     DateTime? @db.Timestamptz(6)
+  sourcePayload  Json?
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(6)
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  source      ScholarshipSource @relation(fields: [sourceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([scholarshipId, sourceId, sourceUrl])
+  @@index([sourceId, status, lastSeenAt])
+  @@index([externalId])
+  @@map("scholarship_source_links")
+}
+
+model ScholarshipFavorite {
+  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String @db.Uuid
+  scholarshipId String @db.Uuid
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, scholarshipId])
+  @@index([scholarshipId, createdAt])
+  @@index([userId, createdAt])
+  @@map("scholarship_favorites")
+}
+
+model MentorService {
+  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mentorProfileId   String @db.Uuid
+  title             String @db.VarChar(200)
+  slug              String @db.VarChar(220)
+  description       String @db.Text
+  category          ServiceCategory
+  price             Decimal @db.Decimal(12, 2)
+  currency          String @default("AOA") @db.Char(3)
+  durationMinutes   Int?
+  mode              DeliveryMode
+  requirements      String? @db.Text
+  publicationStatus ServicePublicationStatus @default(DRAFT)
+  createdAt         DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @db.Timestamptz(6)
+
+  mentorProfile MentorProfile @relation(fields: [mentorProfileId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  inquiries MentorshipInquiry[]
+
+  @@unique([mentorProfileId, slug])
+  @@index([publicationStatus, category, price])
+  @@index([mentorProfileId, publicationStatus])
+  @@map("mentor_services")
+}
+
+model Course {
+  id                String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mentorProfileId   String @db.Uuid
+  title             String @db.VarChar(220)
+  description       String @db.Text
+  category          String @db.VarChar(120)
+  price             Decimal @db.Decimal(12, 2)
+  currency          String @default("AOA") @db.Char(3)
+  durationMinutes   Int?
+  mode              DeliveryMode
+  enrollmentUrl     String? @db.VarChar(2048)
+  publicationStatus CoursePublicationStatus @default(DRAFT)
+  createdAt         DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @db.Timestamptz(6)
+
+  mentorProfile MentorProfile @relation(fields: [mentorProfileId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([publicationStatus, category, price])
+  @@index([mentorProfileId, publicationStatus])
+  @@map("courses")
+}
+
+model MentorshipInquiry {
+  id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studentUserId   String @db.Uuid
+  mentorServiceId String @db.Uuid
+  message         String? @db.VarChar(2000)
+  status          InquiryStatus @default(NEW)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+
+  student User @relation("InquiryStudent", fields: [studentUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  mentorService MentorService @relation(fields: [mentorServiceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([studentUserId, status, createdAt])
+  @@index([mentorServiceId, status, createdAt])
+  @@map("mentorship_inquiries")
+}
+
+model PasswordResetToken {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String @db.Uuid
+  tokenHash  String @unique @db.VarChar(255)
+  expiresAt  DateTime @db.Timestamptz(6)
+  usedAt     DateTime? @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, usedAt])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String @db.Uuid
+  tokenHash  String @unique @db.VarChar(255)
+  expiresAt  DateTime @db.Timestamptz(6)
+  usedAt     DateTime? @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, usedAt])
+  @@map("email_verification_tokens")
+}
+
+model RefreshToken {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String @db.Uuid
+  tokenHash  String @unique @db.VarChar(255)
+  expiresAt  DateTime @db.Timestamptz(6)
+  revokedAt  DateTime? @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  userAgent  String? @db.VarChar(500)
+  ipHash     String? @db.VarChar(128)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, revokedAt])
+  @@map("refresh_tokens")
+}
+
+model Notification {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String @db.Uuid
+  type      NotificationType
+  title     String @db.VarChar(180)
+  message   String @db.VarChar(2000)
+  readAt    DateTime? @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId  String? @db.Uuid
+  action       AuditAction
+  entityType   AuditEntityType
+  entityId     String? @db.VarChar(128)
+  occurredAt   DateTime @default(now()) @db.Timestamptz(6)
+  metadata     Json?
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([actorUserId, occurredAt])
+  @@index([entityType, entityId, occurredAt])
+  @@index([action, occurredAt])
+  @@map("audit_logs")
+}
+
+model Application {
+  id                 String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studentUserId      String @db.Uuid
+  scholarshipId      String @db.Uuid
+  status             ApplicationStatus @default(PLANNING)
+  submittedAt        DateTime? @db.Timestamptz(6)
+  externalReference  String? @db.VarChar(255)
+  notes              String? @db.VarChar(2000)
+  createdAt          DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @db.Timestamptz(6)
+
+  student User @relation(fields: [studentUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([studentUserId, scholarshipId])
+  @@index([studentUserId, status, updatedAt])
+  @@index([scholarshipId, status])
+  @@map("applications")
+}

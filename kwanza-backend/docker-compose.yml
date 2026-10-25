@@ -1,0 +1,20 @@
+# Apenas para desenvolvimento. Credenciais de exemplo, sem valor real.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kwanza
+      POSTGRES_PASSWORD: kwanza_dev
+      POSTGRES_DB: kwanza
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  db_test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kwanza
+      POSTGRES_PASSWORD: kwanza_dev
+      POSTGRES_DB: kwanza_test
+    ports: ["5433:5432"]
+    tmpfs: [/var/lib/postgresql/data]
+volumes:
+  pgdata:
