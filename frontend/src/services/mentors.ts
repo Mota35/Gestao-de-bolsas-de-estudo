@@ -13,8 +13,8 @@ export const mentorService = {
     return data
   },
   async servicesOf(id: string): Promise<MentorService[]> {
-    const { data } = await api.get<MentorService[]>(`/mentors/${encodeURIComponent(id)}/services`)
-    return data
+    const { data } = await api.get<Paginated<MentorService>>('/mentor-services', { params: { mentorId: id, pageSize: 100 } })
+    return data.items
   },
   // Área do mentor autenticado
   async myProfile(): Promise<Mentor> {
@@ -48,15 +48,15 @@ export const mentorService = {
 
 export const courseService = {
   async list(params: { q?: string; kind?: string; page?: number } = {}): Promise<Paginated<MentorService>> {
-    const { data } = await api.get<Paginated<MentorService>>('/services', { params })
+    const { data } = await api.get<Paginated<MentorService>>('/courses', { params: { q: params.q, page: params.page } })
     return data
   },
   async get(id: string): Promise<MentorService> {
-    const { data } = await api.get<MentorService>(`/services/${encodeURIComponent(id)}`)
+    const { data } = await api.get<MentorService>(`/courses/${encodeURIComponent(id)}`)
     return data
   },
   async report(id: string, reason: string): Promise<void> {
-    await api.post(`/services/${encodeURIComponent(id)}/report`, { reason })
+    await api.post('/reports', { targetType: 'COURSE', targetId: id, reason: 'OTHER', details: reason })
   },
 }
 

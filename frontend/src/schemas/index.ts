@@ -2,7 +2,8 @@ import { z } from 'zod'
 
 const password = z
   .string()
-  .min(8, 'A senha deve ter pelo menos 8 caracteres.')
+  .min(10, 'A senha deve ter pelo menos 10 caracteres.')
+  .max(128, 'A senha deve ter no máximo 128 caracteres.')
   .regex(/[A-Za-z]/, 'A senha deve conter letras.')
   .regex(/\d/, 'A senha deve conter números.')
 
@@ -24,6 +25,16 @@ export const registerSchema = z
   .refine((v) => v.password === v.confirmPassword, {
     path: ['confirmPassword'],
     message: 'As senhas não coincidem.',
+  })
+  .superRefine((v, ctx) => {
+    const common = ['password', 'password1', '123456789', '1234567890', 'qwertyuiop', 'iloveyou12', 'senha12345', 'angola1234', 'luanda1234', 'admin12345', 'letmein123']
+    if (common.includes(v.password.toLowerCase())) {
+      ctx.addIssue({ code: 'custom', path: ['password'], message: 'Escolha uma senha menos comum.' })
+    }
+    const emailName = v.email.split('@')[0]?.toLowerCase() ?? ''
+    if (emailName.length >= 4 && v.password.toLowerCase().includes(emailName)) {
+      ctx.addIssue({ code: 'custom', path: ['password'], message: 'A senha não deve conter o início do seu email.' })
+    }
   })
 export type RegisterInput = z.infer<typeof registerSchema>
 

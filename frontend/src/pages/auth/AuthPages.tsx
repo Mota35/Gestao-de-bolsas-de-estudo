@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -66,7 +66,6 @@ export function LoginPage() {
 }
 
 export function RegisterPage() {
-  const { setUser } = useAuth()
   const navigate = useNavigate()
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -76,14 +75,13 @@ export function RegisterPage() {
   async function onSubmit(values: RegisterInput) {
     try {
       const { confirmPassword: _c, acceptTerms: _a, ...payload } = values
-      const user = await authService.register(payload)
-      setUser(user)
-      toast.success('Conta criada com sucesso.')
-      navigate(homeFor(user.role), { replace: true })
+      await authService.register(payload)
+      toast.success('Conta criada. Confirme o seu email antes de iniciar sessão.')
+      navigate('/entrar', { replace: true })
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         setError('email', { message: 'Já existe uma conta com este email.' })
-      } else if (e instanceof ApiError && e.status === 422 && e.fieldErrors) {
+      } else if (e instanceof ApiError && (e.status === 400 || e.status === 422) && e.fieldErrors) {
         for (const [field, msgs] of Object.entries(e.fieldErrors)) {
           if (field in values) setError(field as keyof RegisterInput, { message: msgs[0] })
         }
@@ -101,7 +99,7 @@ export function RegisterPage() {
         </SelectField>
         <TextField label="Nome completo" autoComplete="name" error={errors.name} {...register('name')} />
         <TextField label="Email" type="email" autoComplete="email" error={errors.email} {...register('email')} />
-        <TextField label="Senha" type="password" autoComplete="new-password" hint="Mínimo de 8 caracteres, com letras e números." error={errors.password} {...register('password')} />
+        <TextField label="Senha" type="password" autoComplete="new-password" hint="Mínimo de 10 caracteres, com letras e números. Evite senhas comuns ou que incluam o seu email." error={errors.password} {...register('password')} />
         <TextField label="Confirmar senha" type="password" autoComplete="new-password" error={errors.confirmPassword} {...register('confirmPassword')} />
         <div>
           <label className="flex items-start gap-2 text-sm text-slate-700">
@@ -183,10 +181,31 @@ export function ResetPasswordPage() {
     <AuthShell title="Nova senha">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {errors.root && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{errors.root.message}</p>}
-        <TextField label="Nova senha" type="password" autoComplete="new-password" hint="Mínimo de 8 caracteres, com letras e números." error={errors.password} {...register('password')} />
+        <TextField label="Nova senha" type="password" autoComplete="new-password" hint="Mínimo de 10 caracteres, com letras e números." error={errors.password} {...register('password')} />
         <TextField label="Confirmar nova senha" type="password" autoComplete="new-password" error={errors.confirmPassword} {...register('confirmPassword')} />
         <button type="submit" className="btn-primary w-full" disabled={isSubmitting}>{isSubmitting ? 'A guardar…' : 'Guardar nova senha'}</button>
       </form>
+    </AuthShell>
+  )
+}
+
+export function VerifyEmailPage() {
+  const [params] = useSearchParams()
+  const token = params.get('token') ?? ''
+  const [state, setState] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error')
+
+  useEffect(() => {
+    if (!token) return
+    let active = true
+    authService.verifyEmail(token).then(() => { if (active) setState('success') }).catch(() => { if (active) setState('error') })
+    return () => { active = false }
+  })
+
+  return (
+    <AuthShell title="Confirmação de email">
+      {state === 'loading' && <p role="status">A confirmar o seu email…</p>}
+      {state === 'success' && <div className="space-y-3"><p role="status">Email confirmado. Já pode iniciar sessão.</p><Link to="/entrar" className="btn-primary">Iniciar sessão</Link></div>}
+      {state === 'error' && <div className="space-y-3"><p role="alert">Este link é inválido ou expirou. Inicie sessão e peça um novo link de confirmação.</p><Link to="/entrar" className="btn-outline">Iniciar sessão</Link></div>}
     </AuthShell>
   )
 }

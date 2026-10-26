@@ -10,7 +10,7 @@ import MentorDetailPage from '../pages/public/MentorDetailPage'
 import CoursesPage from '../pages/public/CoursesPage'
 import ServiceDetailPage from '../pages/public/ServiceDetailPage'
 import { AboutPage, ContactPage, FaqPage, NotFoundPage } from '../pages/public/StaticPages'
-import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from '../pages/auth/AuthPages'
+import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage, VerifyEmailPage } from '../pages/auth/AuthPages'
 import { StudentApplicationsPage, StudentFavoritesPage, StudentHome, StudentProfilePage } from '../pages/student/StudentPages'
 import { MentorProfilePage, MentorServicesPage } from '../pages/mentor/MentorPages'
 import {
@@ -56,7 +56,9 @@ export function AppRoutes() {
         <Route path="registo" element={<RegisterPage />} />
         <Route path="entrar" element={<LoginPage />} />
         <Route path="recuperar-senha" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="nova-senha" element={<ResetPasswordPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
 
         <Route element={<ProtectedRoute roles={['student']} />}>
           <Route path="estudante" element={<DashboardLayout title="Área do estudante" items={studentNav} />}>

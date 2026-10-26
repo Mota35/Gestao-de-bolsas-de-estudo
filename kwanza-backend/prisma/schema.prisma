@@ -178,6 +178,8 @@ model User {
   applications        Application[]
   auditLogs           AuditLog[] @relation("AuditActor")
   mentorshipInquiries MentorshipInquiry[] @relation("InquiryStudent")
+  reportsMade         Report[] @relation("ReportReporter")
+  reportsResolved     Report[] @relation("ReportResolver")
 
   @@index([role, isActive])
   @@index([createdAt])
@@ -492,4 +494,46 @@ model Application {
   @@index([studentUserId, status, updatedAt])
   @@index([scholarshipId, status])
   @@map("applications")
+}
+
+enum ReportTargetType {
+  MENTOR_PROFILE
+  MENTOR_SERVICE
+  COURSE
+}
+
+enum ReportReason {
+  SCAM
+  FALSE_INFORMATION
+  INAPPROPRIATE_CONTENT
+  IMPERSONATION
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+model Report {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterUserId String           @db.Uuid
+  targetType     ReportTargetType
+  targetId       String           @db.Uuid
+  reason         ReportReason
+  details        String?          @db.VarChar(2000)
+  status         ReportStatus     @default(OPEN)
+  resolutionNote String?          @db.VarChar(1000)
+  resolvedById   String?          @db.Uuid
+  resolvedAt     DateTime?        @db.Timestamptz(6)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+
+  reporter User  @relation("ReportReporter", fields: [reporterUserId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  resolver User? @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@index([reporterUserId])
+  @@map("reports")
 }

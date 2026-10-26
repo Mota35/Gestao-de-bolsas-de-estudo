@@ -152,4 +152,5 @@ export interface AuditEntry {
 export interface ApiErrorBody {
   message?: string
   errors?: Record<string, string[]>
+  error?: { code?: string; message?: string; details?: unknown; requestId?: string }
 }
