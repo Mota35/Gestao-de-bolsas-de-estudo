@@ -1,0 +1,7 @@
+export const countries = ['Portugal', 'Brasil', 'África do Sul', 'Cabo Verde']
+export const areas = ['Engenharia', 'Ciências', 'Saúde', 'Gestão', 'Economia', 'Educação', 'Tecnologia', 'Direito', 'Artes']
+export const nationalities = ['Angolana', 'Moçambicana', 'Cabo-verdiana', 'Outra']
+export const academicLevels = ['Ensino secundário concluído', 'Licenciatura em curso', 'Licenciatura concluída', 'Mestrado concluído']
+export const supportCategories = ['Bolsas e fontes', 'Cursos e mentorias', 'Conta e segurança', 'Outro assunto']
+export const mentorSpecialties = ['Bolsas e candidaturas', 'Carreira e tecnologia', 'Investigação e escrita académica', 'Cursos técnicos e empregabilidade']
+export const languagesList = ['Português', 'Inglês', 'Francês']

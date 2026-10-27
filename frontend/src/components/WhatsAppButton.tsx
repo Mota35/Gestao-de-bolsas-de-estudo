@@ -1,25 +1,46 @@
 import { MessageCircle } from 'lucide-react'
-import { buildWhatsappLink } from '../utils/whatsapp'
+import { toast } from 'sonner'
+import { buildWhatsAppUrl } from '../lib/format'
 
 interface Props {
-  number?: string | null
-  /** Só mostra o botão se o mentor autorizou a divulgação. */
+  /** Só deve ser passado quando o mentor autorizou a divulgação. */
+  number?: string
+  serviceTitle: string
   authorized: boolean
-  serviceName: string
+  variant?: 'primary' | 'outline'
+  label?: string
+  className?: string
+  icon?: boolean
 }
 
-export function WhatsAppButton({ number, authorized, serviceName }: Props) {
-  if (!authorized || !number) {
-    return <p className="text-sm text-slate-500">Este mentor não divulgou um contacto de WhatsApp.</p>
-  }
-  const href = buildWhatsappLink(number, serviceName)
-  if (!href) {
-    return <p className="text-sm text-slate-500">O contacto de WhatsApp deste mentor não é válido.</p>
+/**
+ * Botão «Contactar pelo WhatsApp». Só é apresentado com autorização explícita do mentor.
+ * Abre https://wa.me/NUMERO?text=MENSAGEM (número internacional só com dígitos, mensagem codificada).
+ */
+export function WhatsAppButton({ number, serviceTitle, authorized, variant = 'outline', label = 'Contactar pelo WhatsApp', className = '', icon = false }: Props) {
+  if (!authorized) return null
+  const cls = `btn ${variant === 'primary' ? 'btn-primary' : ''} ${className}`
+  const content = (
+    <>
+      {icon && <MessageCircle size={18} aria-hidden />}
+      {label}
+    </>
+  )
+  const url = number ? buildWhatsAppUrl(number, serviceTitle) : null
+  if (url) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className={cls}>
+        {content}
+      </a>
+    )
   }
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="btn-accent">
-      <MessageCircle className="h-4 w-4" aria-hidden />
-      Contactar pelo WhatsApp
-    </a>
+    <button
+      type="button"
+      className={cls}
+      onClick={() => toast.info('Este perfil de demonstração não tem número público. Num perfil real, abre o WhatsApp com a mensagem preenchida.')}
+    >
+      {content}
+    </button>
   )
 }

@@ -1,99 +1,168 @@
-import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { useAuth } from '../contexts/AuthContext'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Logo } from '../components/ui/Logo'
+import { useAuth, homeForRole } from '../contexts/AuthContext'
+import { env } from '../lib/env'
+import { formatToday } from '../lib/format'
 
-const links = [
+const nav = [
+  { to: '/', label: 'Início', end: true },
   { to: '/bolsas', label: 'Bolsas' },
   { to: '/mentores', label: 'Mentores' },
-  { to: '/cursos', label: 'Cursos e mentorias' },
-  { to: '/sobre', label: 'Sobre nós' },
-  { to: '/faq', label: 'Perguntas frequentes' },
-  { to: '/contactos', label: 'Contactos' },
+  { to: '/cursos-e-mentorias', label: 'Cursos e mentorias' },
+  { to: '/sobre-nos', label: 'Sobre nós' },
 ]
 
-export function PublicLayout() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+function Header() {
   const [open, setOpen] = useState(false)
-
-  const area = user?.role === 'admin' ? '/admin' : user?.role === 'mentor' ? '/mentor' : '/estudante'
-
-  async function handleLogout() {
-    await logout()
-    toast.success('Sessão terminada.')
-    navigate('/')
-  }
-
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-100 text-brand-700' : 'text-slate-700 hover:bg-slate-100'}`
-
+  const { user } = useAuth()
+  const { pathname } = useLocation()
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+  const navCls = ({ isActive }: { isActive: boolean }) => `nav-link ${isActive ? 'active' : ''}`
   return (
-    <div className="flex min-h-screen flex-col">
-      <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:p-2">
-        Saltar para o conteúdo
-      </a>
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="text-lg font-bold text-brand-700">
-            Kwanza <span className="text-gold-500">Oportunidades</span>
-          </Link>
-          <nav aria-label="Principal" className="hidden items-center gap-1 lg:flex">
-            {links.map((l) => <NavLink key={l.to} to={l.to} className={linkClass}>{l.label}</NavLink>)}
-          </nav>
-          <div className="hidden items-center gap-2 lg:flex">
-            {user ? (
-              <>
-                <Link to={area} className="btn-outline">A minha área</Link>
-                <button type="button" onClick={() => void handleLogout()} className="btn-primary">Terminar sessão</button>
-              </>
-            ) : (
-              <>
-                <Link to="/entrar" className="btn-outline">Entrar</Link>
-                <Link to="/registo" className="btn-primary">Criar conta</Link>
-              </>
-            )}
-          </div>
-          <button
-            type="button"
-            className="rounded-md p-2 lg:hidden"
-            aria-expanded={open}
-            aria-controls="menu-movel"
-            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? <X /> : <Menu />}
-          </button>
+    <header className="border-b border-line bg-white">
+      <div className="wrap relative flex h-[90px] items-center justify-between max-lg:h-[72px]">
+        <Logo />
+        <nav aria-label="Principal" className="flex gap-[18px] max-lg:hidden">
+          {nav.map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.end} className={navCls}>
+              {n.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="flex items-center gap-3.5 text-[12px] font-bold text-green max-lg:flex-1 max-lg:justify-center">
+          <span title="Idioma: português (alternativa em inglês indisponível nesta versão)">PT / EN</span>
+          {user ? (
+            <Link to={homeForRole(user.role)} className="max-lg:hidden">
+              A minha área
+            </Link>
+          ) : (
+            <Link to="/entrar" className="max-lg:hidden">
+              Entrar
+            </Link>
+          )}
         </div>
+        <Link to={user ? homeForRole(user.role) : '/registo'} className="btn btn-primary btn-sm !min-h-[38px] !px-3.5 max-lg:hidden">
+          {user ? 'Abrir painel' : 'Criar conta'}
+        </Link>
+        <button type="button" className="hidden p-1 max-lg:block" aria-label={open ? 'Fechar menu' : 'Abrir menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          {open ? <X size={24} /> : <Menu size={24} />}
+        </button>
         {open && (
-          <div id="menu-movel" className="border-t border-slate-200 px-4 py-3 lg:hidden">
-            <nav aria-label="Principal móvel" className="flex flex-col gap-1">
-              {links.map((l) => <NavLink key={l.to} to={l.to} className={linkClass} onClick={() => setOpen(false)}>{l.label}</NavLink>)}
-              {user ? (
-                <>
-                  <Link to={area} className="btn-outline mt-2" onClick={() => setOpen(false)}>A minha área</Link>
-                  <button type="button" className="btn-primary" onClick={() => void handleLogout()}>Terminar sessão</button>
-                </>
-              ) : (
-                <>
-                  <Link to="/entrar" className="btn-outline mt-2" onClick={() => setOpen(false)}>Entrar</Link>
-                  <Link to="/registo" className="btn-primary" onClick={() => setOpen(false)}>Criar conta</Link>
-                </>
-              )}
+          <div className="absolute inset-x-0 top-full z-20 border-t border-line bg-white p-4 shadow-lg lg:hidden">
+            <nav aria-label="Menu móvel" className="flex flex-col">
+              {nav.map((n) => (
+                <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `nav-link py-3 ${isActive ? 'active' : ''}`}>
+                  {n.label}
+                </NavLink>
+              ))}
+              <div className="mt-2 flex gap-3 border-t border-line pt-4">
+                {user ? (
+                  <Link to={homeForRole(user.role)} className="btn btn-primary btn-sm flex-1">
+                    Abrir painel
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/entrar" className="btn btn-sm flex-1">
+                      Entrar
+                    </Link>
+                    <Link to="/registo" className="btn btn-primary btn-sm flex-1">
+                      Criar conta
+                    </Link>
+                  </>
+                )}
+              </div>
             </nav>
           </div>
         )}
-      </header>
-      <main id="conteudo" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      </div>
+    </header>
+  )
+}
+
+export function Footer() {
+  const groups: Array<[string, Array<[string, string]>]> = [
+    [
+      'EXPLORAR',
+      [
+        ['Bolsas de estudo', '/bolsas'],
+        ['Mentores', '/mentores'],
+        ['Cursos e mentorias', '/cursos-e-mentorias'],
+      ],
+    ],
+    [
+      'A PLATAFORMA',
+      [
+        ['Sobre nós', '/sobre-nos'],
+        ['Contactos e suporte', '/contactos'],
+        ['Perguntas frequentes', '/perguntas-frequentes'],
+      ],
+    ],
+    [
+      'SEGURANÇA',
+      [
+        ['Fontes e verificação', '/fontes-e-verificacao'],
+        ['Privacidade', '/privacidade'],
+        ['Termos de utilização', '/termos'],
+      ],
+    ],
+  ]
+  return (
+    <footer className="bg-deep text-[#b9cdd5]">
+      <div className="wrap pb-[44px] pt-[56px]">
+        <Logo variant="footer" />
+        <p className="mt-[7px] text-[14px] leading-5">Mais clareza para escolher o próximo passo. Bolsas, orientação e pessoas que ajudam a avançar.</p>
+        <div className="mt-7 space-y-[8px] text-[13px] leading-[18px]">
+          {groups.map(([label, links]) => (
+            <p key={label}>
+              <span className="mr-3.5 inline-block">{label}</span>
+              {links.map(([text, to], i) => (
+                <span key={to}>
+                  {i > 0 && ' · '}
+                  <Link to={to} className="hover:text-white hover:underline">
+                    {text}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ))}
+        </div>
+        <p className="mt-[30px] text-[11px] leading-[17px]">
+          © 2026 Kwanza Oportunidades · Angola · PT / EN
+          <br />
+          {env.demoMode
+            ? 'Design demonstrativo. Pessoas, oportunidades e números fictícios. Sem envios ou ligações activas.'
+            : 'Consulta sempre a fonte oficial antes de te candidatares.'}
+        </p>
+      </div>
+    </footer>
+  )
+}
+
+export function PublicLayout({ bare = false }: { bare?: boolean }) {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return (
+    <div className="flex min-h-screen flex-col">
+      <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">
+        Saltar para o conteúdo
+      </a>
+      <div className="bg-navy text-[11.5px] leading-[33px] text-[#c9d6dd] max-lg:text-[11px]">
+        <div className="wrap">
+          <span className="max-lg:hidden">Plataforma educacional para Angola{env.demoMode ? ` · Conteúdo de demonstração · ${formatToday()}` : ''}</span>
+          <span className="lg:hidden">{env.demoMode ? `Conteúdo ilustrativo · ${formatToday().replace(' de outubro de ', ' out. ')}` : 'Plataforma educacional para Angola'}</span>
+        </div>
+      </div>
+      <Header />
+      <main id="conteudo" className="flex-1">
         <Outlet />
       </main>
-      <footer className="bg-brand-900 text-slate-300">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Kwanza Oportunidades. Todos os direitos reservados.</p>
-          <p>Confirme sempre as informações na fonte oficial antes de se candidatar.</p>
-        </div>
-      </footer>
+      {!bare && <Footer />}
     </div>
   )
 }

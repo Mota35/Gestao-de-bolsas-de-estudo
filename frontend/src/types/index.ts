@@ -1,156 +1,153 @@
-export type Role = 'student' | 'mentor' | 'admin'
-
-export interface User {
-  id: string
-  name: string
-  email: string
-  role: Role
-  phone?: string | null
-}
-
-export type VerificationStatus = 'verified' | 'pending' | 'rejected'
-export type ScholarshipStatus = 'open' | 'closed' | 'expired'
-export type FundingType = 'full' | 'partial' | 'other'
-export type Modality = 'presential' | 'online' | 'hybrid'
-export type EducationLevel = 'bachelor' | 'master' | 'phd' | 'technical' | 'other'
+export type Level = 'licenciatura' | 'mestrado' | 'doutoramento' | 'tecnico' | 'outros'
+export type Funding = 'integral' | 'parcial' | 'outro'
+export type Modality = 'presencial' | 'online' | 'hibrida'
+export type Verification = 'verificada' | 'pendente'
+export type CallStatus = 'aberta' | 'expirada'
+export type SortKey = 'prazo' | 'publicacao' | 'relevancia'
 
 export interface Scholarship {
   id: string
+  slug: string
   title: string
   institution: string
   country: string
-  level: EducationLevel
-  field: string
-  funding: FundingType
+  level: Level
+  area: string
+  funding: Funding
   modality: Modality
-  deadline: string | null
+  /** ISO AAAA-MM-DD */
+  deadline: string
   publishedAt: string
-  status: ScholarshipStatus
-  verification: VerificationStatus
-  sourceName: string
-  sourceUrl: string | null
-  description: string
-  requirements?: string[]
-  applicationUrl?: string | null
-  isDemo?: boolean
-  active?: boolean
+  updatedAt: string
+  verification: Verification
+  isDemo: boolean
+  /** Ligação oficial validada pelo backend. Nunca é inventada no frontend. */
+  officialUrl?: string
+  sourceName?: string
+  summary?: string
+  eligibility?: string[]
+  benefits?: string[]
+  documents?: string[]
+}
+
+export interface ScholarshipQuery {
+  q?: string
+  pais?: string
+  nivel?: Level[]
+  area?: string
+  financiamento?: Funding | ''
+  modalidade?: Modality | ''
+  estado?: CallStatus | ''
+  prazoAte?: string
+  verificacao?: Verification | ''
+  sort?: SortKey
+  page?: number
+  pageSize?: number
 }
 
 export interface Paginated<T> {
   items: T[]
+  total: number
   page: number
   pageSize: number
-  total: number
 }
 
-export interface ScholarshipFilters {
-  q?: string
-  country?: string
-  level?: EducationLevel | ''
-  field?: string
-  funding?: FundingType | ''
-  modality?: Modality | ''
-  status?: ScholarshipStatus | ''
-  deadlineBefore?: string
-  sort?: 'deadline' | 'published' | 'relevance'
-  page?: number
-}
-
-export interface Mentor {
-  id: string
-  name: string
-  photoUrl?: string | null
-  headline: string
-  bio: string
-  specialties: string[]
-  experience: string
-  qualifications: string[]
-  languages: string[]
-  verification: VerificationStatus
-  whatsappPublic: boolean
-  /** Presente apenas se o mentor autorizou a divulgação. */
-  whatsapp?: string | null
-  isDemo?: boolean
-}
-
-export type ServiceMode = 'online' | 'presential'
+export type ServiceKind = 'mentoria' | 'curso'
+export type PublishState = 'rascunho' | 'publicado' | 'desactivado'
 
 export interface MentorService {
   id: string
-  mentorId: string
-  mentorName?: string
+  mentorSlug: string
+  mentorName: string
+  mentorVerified: boolean
   title: string
-  description: string
-  kind: 'course' | 'mentoring'
-  price: number
-  currency: 'AOA' | 'USD' | 'EUR'
-  mode: ServiceMode
+  kind: ServiceKind
+  modality: 'online' | 'presencial'
+  location?: string
+  duration: string
   availability: string
-  published: boolean
-  reported?: boolean
-  isDemo?: boolean
+  price: number
+  currency: 'AOA'
+  whatsappAllowed: boolean
+  /** Só presente quando o mentor autorizou a divulgação. */
+  whatsapp?: string
+  state: PublishState
+  specialty?: string
+}
+
+export interface Mentor {
+  slug: string
+  name: string
+  headline: string
+  specialty: string
+  verified: boolean
+  location: string
+  languages: string[]
+  modalities: string[]
+  availability: string
+  availabilityNote?: string
+  priceFrom: number
+  tags: string[]
+  bio: string[]
+  qualifications: string[]
+  photo?: string
+  whatsappAllowed: boolean
+  whatsapp?: string
+  isDemo: boolean
+  schedule: string[]
+  services: MentorService[]
+}
+
+export interface MentorQuery {
+  q?: string
+  especialidade?: string
+  idioma?: string
+  modalidade?: string
+  precoMax?: number
+  disponibilidade?: string
+  apenasVerificados?: boolean
+}
+
+export interface ServiceQuery {
+  q?: string
+  tipo?: ServiceKind | ''
+  modalidade?: string
+  especialidade?: string
+  preco?: string
+  disponibilidade?: string
+  verificacao?: string
+}
+
+export type Role = 'estudante' | 'mentor' | 'admin'
+
+export interface SessionUser {
+  id: string
+  name: string
+  role: Role
+  email: string
+  initials: string
 }
 
 export interface StudentProfile {
+  displayName: string
   nationality: string
-  educationLevel: EducationLevel | ''
-  fieldOfStudy: string
+  academicLevel: string
+  area: string
+  targetLevel: string
   targetCountry: string
-  phone?: string
+  email: string
+}
+
+export interface Preferences {
+  language: 'pt' | 'en'
+  notifyOpportunities: boolean
   notifyDeadlines: boolean
-}
-
-export interface MentorProfileInput {
-  headline: string
-  bio: string
-  specialties: string[]
-  experience: string
-  qualifications: string[]
-  languages: string[]
-  whatsapp: string
-  whatsappPublic: boolean
-  photoUrl?: string
-}
-
-export interface Application {
-  id: string
-  scholarshipId: string
-  scholarshipTitle: string
-  status: 'draft' | 'submitted' | 'accepted' | 'rejected'
-  updatedAt: string
-}
-
-export interface AdminUser extends User {
-  active: boolean
-  createdAt: string
-}
-
-export interface UsageReport {
-  users: number
-  mentors: number
-  scholarships: number
-  favorites: number
-  period: string
-}
-
-export interface IntegrationStatus {
-  id: string
-  name: string
-  status: 'ok' | 'error' | 'disabled'
-  lastRunAt: string | null
-  message?: string
-}
-
-export interface AuditEntry {
-  id: string
-  actor: string
-  action: string
-  target: string
-  at: string
+  notifyCourses: boolean
+  notifyOptional: boolean
+  allowSuggestions: boolean
 }
 
 export interface ApiErrorBody {
   message?: string
   errors?: Record<string, string[]>
-  error?: { code?: string; message?: string; details?: unknown; requestId?: string }
 }

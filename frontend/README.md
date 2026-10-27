@@ -1,91 +1,69 @@
-# Kwanza Oportunidades — Frontend
+# Kwanza Oportunidades — frontend
 
-Frontend (nome provisório) da plataforma de bolsas de estudo e mentorias para estudantes angolanos.
-React + Vite + TypeScript + Tailwind CSS, preparado para uma API REST.
+Plataforma de bolsas de estudo e mentorias pagas para estudantes angolanos.
+React 19 · Vite 6 · TypeScript · Tailwind CSS v4 · React Router · Axios · React Hook Form + Zod · Lucide · Sonner.
 
-## Requisitos
+## Instalar e executar
 
-- Node.js 18 ou superior
-- Uma API REST compatível (ver «Contrato da API» abaixo)
-
-## Instalação e execução
+Requisitos: Node.js 20 ou superior.
 
 ```bash
 npm install
-cp .env.example .env      # ajuste VITE_API_URL
-npm run dev               # http://localhost:5173
-```
-
-Outros comandos:
-
-```bash
-npm run typecheck         # verificação de tipos
-npm run build             # tsc + build de produção em dist/
-npm run preview           # pré-visualizar o build
+cp .env.example .env
+npm run dev        # http://localhost:5173
+npm run build      # typecheck + build de produção
 ```
 
 ## Variáveis de ambiente
 
 | Variável | Descrição |
 | --- | --- |
-| `VITE_API_URL` | URL base da API, sem barra final (ex.: `http://localhost:8000/api`) |
+| `VITE_API_URL` | URL base da API REST (ex.: `https://api.exemplo.ao/v1`). Centralizada em `src/lib/env.ts`. |
+| `VITE_DEMO_MODE` | `true` usa dados de demonstração em memória (sem backend). Também activo se `VITE_API_URL` estiver vazio. |
+| `VITE_DEMO_REFERENCE_DATE` | Data de referência do modo demo (por omissão `2026-10-26`) usada para calcular bolsas abertas/expiradas. |
+| `VITE_SUPPORT_EMAIL` | Email de suporte mostrado nas páginas públicas. |
 
-Não coloque segredos em variáveis `VITE_*`: ficam visíveis no browser.
+O `.env.example` não contém segredos. Nunca coloques chaves ou tokens em variáveis `VITE_*`.
 
-## Sessão e segurança
+## Modo de demonstração
 
-- A sessão deve ser mantida pelo backend através de **cookies seguros, HttpOnly e SameSite**.
-  O cliente Axios usa `withCredentials: true`; nenhum token é guardado em `localStorage`.
-- Se a API estiver noutra origem, configure CORS com `Access-Control-Allow-Credentials: true`
-  e uma origem explícita. Considere também protecção CSRF no backend.
-- As rotas protegidas (`/estudante`, `/mentor`, `/admin`) só melhoram a experiência: **a
-  autorização real é sempre do backend**.
-- A recuperação de senha depende totalmente da API; o frontend não guarda tokens nem simula sucesso.
-  O link de recuperação enviado por email deve apontar para `/nova-senha?token=...`.
+Com `VITE_DEMO_MODE=true` um adaptador do Axios (`src/services/demoAdapter.ts`) simula a API. Todo o conteúdo é fictício e identificado como demonstração.
+
+Contas de exemplo (qualquer senha com 12 ou mais caracteres):
+
+- Estudante: `ana@estudante.example`
+- Mentor: `celina@mentor.example`
+- Administração: `lidia@admin.example`
+
+A recuperação de senha devolve sempre uma resposta neutra e nunca simula sucesso na redefinição.
+
+## Segurança e autenticação
+
+- Sem tokens nem senhas guardados no frontend (sem `localStorage`). O cliente usa `withCredentials` para cookies `HttpOnly` + `SameSite` definidos pelo backend; em modo demo só fica o id de uma conta fictícia em `sessionStorage`.
+- Os guardas de rota (`RequireRole`) servem apenas navegação: a autorização real tem de ser feita pela API.
+- Erros 400/401/403/404/409/422/500 tratados em `src/lib/errors.ts`; um 401 dispara o evento de sessão expirada.
+- Botão WhatsApp: `https://wa.me/NUMERO?text=MENSAGEM`, número só com dígitos (incl. 244), mensagem codificada, apenas se o mentor autorizou.
+- Bolsas expiradas nunca aparecem como abertas (estado derivado do prazo).
 
 ## Estrutura
 
 ```
 src/
-  components/   componentes reutilizáveis (ui, cartões, botão WhatsApp)
-  contexts/     autenticação e favoritos
-  hooks/        useAsync (carregamento/erro)
-  layouts/      layout público e de painéis
-  pages/        public, auth, student, mentor, admin
-  routes/       rotas e ProtectedRoute
-  schemas/      validação Zod
-  services/     cliente Axios e serviços (auth, bolsas, favoritos, mentores, admin, suporte)
-  types/        tipos TypeScript
-  utils/        formatação e geração de links WhatsApp
+  components/  ui/ (campos, tabelas, avisos, diálogos)
+  contexts/    sessão e favoritos
+  data/        dados de demonstração
+  hooks/       useAsync, useDocumentTitle
+  layouts/     público, autenticação, painéis
+  lib/         env, formatação, erros
+  pages/       public/ auth/ student/ mentor/ admin/
+  routes/      guardas por papel
+  schemas/     validação Zod
+  services/    cliente HTTP e serviços da API
+  types/
 ```
 
-## Contrato da API (esperado)
+## Rotas
 
-Erros devem usar o formato `{ "message": string, "errors"?: { campo: string[] } }`.
-Tratados: 400, 401, 403, 404, 409, 422, 500 e falha de rede.
-
-| Área | Endpoints |
-| --- | --- |
-| Auth | `GET /auth/me`, `POST /auth/login`, `POST /auth/register`, `POST /auth/logout`, `POST /auth/forgot-password`, `POST /auth/reset-password` |
-| Bolsas | `GET /scholarships` (q, country, level, field, funding, modality, status, deadlineBefore, sort, page, pageSize, featured), `GET /scholarships/:id` |
-| Estudante | `GET/PUT /me/profile`, `GET /me/compatible-scholarships`, `GET /me/favorites`, `PUT/DELETE /me/favorites/:id`, `GET /me/applications` |
-| Mentores | `GET /mentors`, `GET /mentors/:id`, `GET /mentors/:id/services`, `GET /services`, `GET /services/:id`, `POST /services/:id/report` |
-| Mentor | `GET/PUT /me/mentor`, `GET/POST /me/mentor/services`, `PUT/PATCH/DELETE /me/mentor/services/:id` |
-| Suporte | `POST /support/messages` |
-| Admin | `/admin/users`, `/admin/mentors`, `/admin/scholarships`, `/admin/services`, `/admin/reports/usage`, `/admin/integrations`, `/admin/audit` |
-
-Listagens paginadas devolvem `{ items, page, pageSize, total }`. O número de WhatsApp de um mentor
-só deve ser enviado pela API quando `whatsappPublic` for `true`.
-
-## Regras de conteúdo
-
-- Nenhum dado fictício é embutido no código. Registos de demonstração devem vir da API com
-  `isDemo: true`, e são mostrados com o selo «Dados de demonstração».
-- Uma bolsa cujo prazo já passou é sempre mostrada como **expirada**, mesmo que a API a envie como aberta.
-- Perfis de mentores não verificados e bolsas pendentes de verificação são identificados.
-- O botão de candidatura só aparece se a API fornecer um `applicationUrl` real e a bolsa não estiver expirada.
-
-## WhatsApp
-
-O botão gera `https://wa.me/<número>?text=<mensagem codificada>`, com o número só em dígitos e
-indicativo `244` (números locais de 9 dígitos recebem o indicativo automaticamente).
+Públicas: `/`, `/bolsas`, `/mentores`, `/cursos-e-mentorias`, `/sobre-nos`, `/contactos`, `/perguntas-frequentes`, … ·
+Auth: `/entrar`, `/registo`, `/recuperar-senha`, `/nova-senha` ·
+Estudante `/estudante/*` · Mentor `/mentor/*` · Administração `/admin/*`.

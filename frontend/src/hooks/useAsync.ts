@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { errorMessage } from '../services/api'
+import { getErrorMessage } from '../lib/errors'
 
-interface AsyncState<T> {
+export interface AsyncState<T> {
   data: T | null
   loading: boolean
   error: string | null
@@ -10,31 +10,25 @@ interface AsyncState<T> {
 }
 
 /** Carrega dados assíncronos com estados de carregamento e erro. */
-export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]): AsyncState<T> {
+export function useAsync<T>(loader: () => Promise<T>, deps: unknown[]): AsyncState<T> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
-  const fnRef = useRef(fn)
-  fnRef.current = fn
+  const loaderRef = useRef(loader)
+  loaderRef.current = loader
 
   useEffect(() => {
-    let cancelled = false
+    let active = true
     setLoading(true)
     setError(null)
-    fnRef
+    loaderRef
       .current()
-      .then((d) => {
-        if (!cancelled) setData(d)
-      })
-      .catch((e) => {
-        if (!cancelled) setError(errorMessage(e))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+      .then((d) => active && setData(d))
+      .catch((e) => active && setError(getErrorMessage(e)))
+      .finally(() => active && setLoading(false))
     return () => {
-      cancelled = true
+      active = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, tick])

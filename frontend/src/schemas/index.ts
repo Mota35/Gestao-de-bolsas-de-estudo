@@ -1,117 +1,98 @@
 import { z } from 'zod'
 
+const email = z.string().trim().min(1, 'Indica o teu email.').email('Indica um email válido.')
 const password = z
   .string()
-  .min(10, 'A senha deve ter pelo menos 10 caracteres.')
-  .max(128, 'A senha deve ter no máximo 128 caracteres.')
-  .regex(/[A-Za-z]/, 'A senha deve conter letras.')
-  .regex(/\d/, 'A senha deve conter números.')
+  .min(12, 'Usa pelo menos 12 caracteres.')
+  .regex(/[A-Za-zÀ-ÿ]/, 'Inclui pelo menos uma letra.')
+  .regex(/\d/, 'Inclui pelo menos um número.')
 
 export const loginSchema = z.object({
-  email: z.string().min(1, 'Indique o email.').email('Email inválido.'),
-  password: z.string().min(1, 'Indique a senha.'),
+  email,
+  password: z.string().min(1, 'Indica a tua senha.'),
 })
-export type LoginInput = z.infer<typeof loginSchema>
 
 export const registerSchema = z
   .object({
-    name: z.string().min(2, 'Indique o nome completo.'),
-    email: z.string().min(1, 'Indique o email.').email('Email inválido.'),
+    role: z.enum(['estudante', 'mentor']),
+    name: z.string().trim().min(2, 'Indica o teu nome.'),
+    email,
     password,
-    confirmPassword: z.string().min(1, 'Confirme a senha.'),
-    role: z.enum(['student', 'mentor']),
-    acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Deve aceitar os termos.' }) }),
+    confirm: z.string().min(1, 'Confirma a senha.'),
+    terms: z.boolean().refine((v) => v, 'Tens de aceitar os Termos e a Política de privacidade.'),
+    newsletter: z.boolean().optional(),
   })
-  .refine((v) => v.password === v.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'As senhas não coincidem.',
-  })
-  .superRefine((v, ctx) => {
-    const common = ['password', 'password1', '123456789', '1234567890', 'qwertyuiop', 'iloveyou12', 'senha12345', 'angola1234', 'luanda1234', 'admin12345', 'letmein123']
-    if (common.includes(v.password.toLowerCase())) {
-      ctx.addIssue({ code: 'custom', path: ['password'], message: 'Escolha uma senha menos comum.' })
-    }
-    const emailName = v.email.split('@')[0]?.toLowerCase() ?? ''
-    if (emailName.length >= 4 && v.password.toLowerCase().includes(emailName)) {
-      ctx.addIssue({ code: 'custom', path: ['password'], message: 'A senha não deve conter o início do seu email.' })
-    }
-  })
-export type RegisterInput = z.infer<typeof registerSchema>
+  .refine((d) => d.password === d.confirm, { path: ['confirm'], message: 'As senhas devem coincidir.' })
 
-export const forgotSchema = z.object({
-  email: z.string().min(1, 'Indique o email.').email('Email inválido.'),
+export const forgotSchema = z.object({ email })
+
+export const resetSchema = z
+  .object({ password, confirm: z.string().min(1, 'Confirma a nova senha.') })
+  .refine((d) => d.password === d.confirm, { path: ['confirm'], message: 'As senhas ainda não coincidem.' })
+
+export const supportSchema = z.object({
+  name: z.string().trim().min(2, 'Indica o teu nome.'),
+  email,
+  category: z.string().min(1, 'Seleciona uma categoria.'),
+  subject: z.string().trim().min(3, 'Resume a tua questão.'),
+  message: z.string().trim().min(10, 'Descreve a situação com mais detalhe.'),
+  consent: z.boolean().refine((v) => v, 'Precisamos da tua autorização para tratar os dados.'),
 })
-export type ForgotInput = z.infer<typeof forgotSchema>
-
-export const resetPasswordSchema = z
-  .object({ password, confirmPassword: z.string().min(1, 'Confirme a senha.') })
-  .refine((v) => v.password === v.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'As senhas não coincidem.',
-  })
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
-
-export const contactSchema = z.object({
-  name: z.string().min(2, 'Indique o nome.'),
-  email: z.string().email('Email inválido.'),
-  subject: z.string().min(3, 'Indique o assunto.'),
-  message: z.string().min(10, 'A mensagem deve ter pelo menos 10 caracteres.'),
-})
-export type ContactInput = z.infer<typeof contactSchema>
 
 export const studentProfileSchema = z.object({
-  nationality: z.string().min(2, 'Indique a nacionalidade.'),
-  educationLevel: z.enum(['', 'bachelor', 'master', 'phd', 'technical', 'other']),
-  fieldOfStudy: z.string().max(100),
-  targetCountry: z.string().max(80),
-  phone: z
-    .string()
-    .regex(/^[0-9+\s-]*$/, 'Use apenas números, espaços e +.')
-    .optional(),
-  notifyDeadlines: z.boolean(),
+  displayName: z.string().trim().min(2, 'Indica o nome de apresentação.'),
+  nationality: z.string().min(1, 'Indica a nacionalidade.'),
+  academicLevel: z.string().min(1, 'Indica o nível académico.'),
+  area: z.string().min(1, 'Indica a área de estudo.'),
+  targetLevel: z.string().min(1, 'Indica o nível que procuras.'),
+  targetCountry: z.string().min(1, 'Indica o país pretendido.'),
 })
-export type StudentProfileInput = z.infer<typeof studentProfileSchema>
 
-export const mentorProfileSchema = z.object({
-  headline: z.string().min(5, 'Indique um título profissional.').max(120),
-  bio: z.string().min(30, 'A biografia deve ter pelo menos 30 caracteres.').max(2000),
-  specialties: z.string().min(2, 'Indique pelo menos uma especialidade (separe por vírgulas).'),
-  experience: z.string().min(10, 'Descreva a sua experiência.'),
-  qualifications: z.string().min(2, 'Indique as qualificações (separe por vírgulas).'),
-  languages: z.string().min(2, 'Indique os idiomas (separe por vírgulas).'),
-  whatsapp: z
-    .string()
-    .min(1, 'Indique o número de WhatsApp.')
-    .refine((v) => /^\+?[0-9\s-]{9,18}$/.test(v), 'Número inválido. Exemplo: +244 923 000 000'),
-  whatsappPublic: z.boolean(),
-  photoUrl: z.string().url('URL inválido.').optional().or(z.literal('')),
-})
-export type MentorProfileFormInput = z.infer<typeof mentorProfileSchema>
+export const mentorProfileSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Indica o nome profissional.'),
+    title: z.string().trim().min(3, 'Indica o título profissional.'),
+    bio: z.string().trim().min(20, 'Escreve uma biografia com pelo menos 20 caracteres.'),
+    specialties: z.string().trim().min(2, 'Indica pelo menos uma especialidade.'),
+    experience: z.string().trim().min(5, 'Descreve a tua experiência.'),
+    languages: z.string().min(1),
+    modalities: z.string().min(1),
+    place: z.string(),
+    whatsapp: z.string(),
+    whatsappConsent: z.boolean(),
+    confirmTruth: z.boolean(),
+  })
+  .superRefine((d, ctx) => {
+    const digits = d.whatsapp.replace(/\D/g, '')
+    if (d.whatsapp && (digits.length < 11 || digits.length > 15)) {
+      ctx.addIssue({ code: 'custom', path: ['whatsapp'], message: 'Usa o formato internacional, só dígitos (ex.: 244 + número).' })
+    }
+    if (d.whatsappConsent && !d.whatsapp) {
+      ctx.addIssue({ code: 'custom', path: ['whatsapp'], message: 'Indica o número para autorizar a divulgação.' })
+    }
+  })
 
 export const serviceSchema = z.object({
-  title: z.string().min(5, 'O título deve ter pelo menos 5 caracteres.').max(120),
-  description: z.string().min(20, 'A descrição deve ter pelo menos 20 caracteres.').max(2000),
-  kind: z.enum(['course', 'mentoring']),
-  price: z.coerce.number({ invalid_type_error: 'Indique o preço.' }).min(0, 'O preço não pode ser negativo.'),
-  currency: z.enum(['AOA', 'USD', 'EUR']),
-  mode: z.enum(['online', 'presential']),
-  availability: z.string().min(3, 'Indique a disponibilidade.'),
-  published: z.boolean(),
+  title: z.string().trim().min(3, 'Indica o título do serviço.'),
+  description: z.string().trim().min(10, 'Descreve o serviço.'),
+  specialty: z.string().min(1),
+  kind: z.enum(['mentoria', 'curso']),
+  price: z.coerce.number({ invalid_type_error: 'Indica um preço.' }).positive('O preço tem de ser superior a zero.'),
+  currency: z.literal('AOA'),
+  duration: z.string().trim().min(1, 'Indica a duração.'),
+  modality: z.enum(['online', 'presencial']),
+  place: z.string(),
+  availability: z.string(),
+  conditions: z.string(),
+  state: z.enum(['rascunho', 'publicado', 'desactivado']),
+  showWhatsApp: z.boolean(),
 })
-export type ServiceFormInput = z.infer<typeof serviceSchema>
 
-export const scholarshipAdminSchema = z.object({
-  title: z.string().min(5, 'Indique o título.'),
-  institution: z.string().min(2, 'Indique a instituição.'),
-  country: z.string().min(2, 'Indique o país.'),
-  level: z.enum(['bachelor', 'master', 'phd', 'technical', 'other']),
-  field: z.string().min(2, 'Indique a área de estudo.'),
-  funding: z.enum(['full', 'partial', 'other']),
-  modality: z.enum(['presential', 'online', 'hybrid']),
-  deadline: z.string().optional().or(z.literal('')),
-  sourceName: z.string().min(2, 'Indique a fonte.'),
-  sourceUrl: z.string().url('URL inválido.').optional().or(z.literal('')),
-  applicationUrl: z.string().url('URL inválido.').optional().or(z.literal('')),
-  description: z.string().min(20, 'Descreva a oportunidade.'),
-})
-export type ScholarshipAdminInput = z.infer<typeof scholarshipAdminSchema>
+export type LoginForm = z.infer<typeof loginSchema>
+export type RegisterForm = z.infer<typeof registerSchema>
+export type ForgotForm = z.infer<typeof forgotSchema>
+export type ResetForm = z.infer<typeof resetSchema>
+export type SupportForm = z.infer<typeof supportSchema>
+export type StudentProfileForm = z.infer<typeof studentProfileSchema>
+export type MentorProfileForm = z.infer<typeof mentorProfileSchema>
+export type ServiceForm = z.infer<typeof serviceSchema>

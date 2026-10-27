@@ -1,39 +1,40 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { User } from '../types'
-import { authService } from '../services/auth'
-import { setUnauthorizedHandler } from '../services/api'
+import { authService } from '../services'
+import { UNAUTHORIZED_EVENT } from '../services/http'
+import type { SessionUser } from '../types'
 
-interface AuthState {
-  user: User | null
+interface AuthValue {
+  user: SessionUser | null
   loading: boolean
-  setUser: (u: User | null) => void
+  login: (email: string, password: string) => Promise<SessionUser>
   logout: () => Promise<void>
-  refresh: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthState | undefined>(undefined)
+const AuthContext = createContext<AuthValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<SessionUser | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const refresh = useCallback(async () => {
-    try {
-      setUser(await authService.me())
-    } catch {
-      setUser(null)
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let active = true
+    authService
+      .me()
+      .then((u) => active && setUser(u))
+      .catch(() => active && setUser(null))
+      .finally(() => active && setLoading(false))
+    const onUnauthorized = () => setUser(null)
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized)
+    return () => {
+      active = false
+      window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized)
     }
   }, [])
 
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
-  useEffect(() => {
-    setUnauthorizedHandler(() => setUser(null))
-    return () => setUnauthorizedHandler(null)
+  const login = useCallback(async (email: string, password: string) => {
+    const u = await authService.login({ email, password })
+    setUser(u)
+    return u
   }, [])
 
   const logout = useCallback(async () => {
@@ -44,12 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const value = useMemo(() => ({ user, loading, setUser, logout, refresh }), [user, loading, logout, refresh])
+  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth(): AuthState {
+export function useAuth(): AuthValue {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth deve ser usado dentro de AuthProvider')
   return ctx
+}
+
+export function homeForRole(role: SessionUser['role']): string {
+  return role === 'admin' ? '/admin' : role === 'mentor' ? '/mentor' : '/estudante'
 }

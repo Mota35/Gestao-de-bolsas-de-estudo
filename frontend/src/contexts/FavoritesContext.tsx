@@ -1,57 +1,73 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import toast from 'react-hot-toast'
-import { favoriteService } from '../services/favorites'
-import { errorMessage } from '../services/api'
+import { toast } from 'sonner'
+import { favoriteService } from '../services'
+import { getErrorMessage } from '../lib/errors'
 import { useAuth } from './AuthContext'
 
-interface FavoritesState {
-  ids: Set<string>
-  isFavorite: (id: string) => boolean
-  toggle: (id: string) => Promise<void>
+interface FavoritesValue {
+  saved: Set<string>
+  toggle: (slug: string) => Promise<void>
+  clearAll: () => Promise<boolean>
 }
 
-const FavoritesContext = createContext<FavoritesState | undefined>(undefined)
+const FavoritesContext = createContext<FavoritesValue | null>(null)
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const [ids, setIds] = useState<Set<string>>(new Set())
+  const [saved, setSaved] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    if (!user) {
-      setIds(new Set())
+    if (user?.role !== 'estudante') {
+      setSaved(new Set())
       return
     }
     favoriteService
       .list()
-      .then((items) => setIds(new Set(items.map((s) => s.id))))
-      .catch(() => setIds(new Set()))
+      .then((l) => setSaved(new Set(l.map((s) => s.slug))))
+      .catch(() => setSaved(new Set()))
   }, [user])
 
   const toggle = useCallback(
-    async (id: string) => {
-      const was = ids.has(id)
+    async (slug: string) => {
+      if (user?.role !== 'estudante') {
+        toast.info('Inicia sessão como estudante para guardar bolsas.')
+        return
+      }
+      const isSaved = saved.has(slug)
       try {
-        if (was) await favoriteService.remove(id)
-        else await favoriteService.add(id)
-        setIds((prev) => {
+        if (isSaved) await favoriteService.remove(slug)
+        else await favoriteService.add(slug)
+        setSaved((prev) => {
           const next = new Set(prev)
-          if (was) next.delete(id)
-          else next.add(id)
+          if (isSaved) next.delete(slug)
+          else next.add(slug)
           return next
         })
-        toast.success(was ? 'Bolsa removida dos favoritos.' : 'Bolsa guardada nos favoritos.')
+        toast.success(isSaved ? 'Bolsa removida dos guardados.' : 'Bolsa guardada.')
       } catch (e) {
-        toast.error(errorMessage(e))
+        toast.error(getErrorMessage(e))
       }
     },
-    [ids],
+    [saved, user],
   )
 
-  const value = useMemo(() => ({ ids, isFavorite: (id: string) => ids.has(id), toggle }), [ids, toggle])
+  const clearAll = useCallback(async () => {
+    try {
+      await favoriteService.clear()
+      setSaved(new Set())
+      toast.success('Seleção removida dos guardados.')
+      return true
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+      return false
+    }
+  }, [])
+
+  const value = useMemo(() => ({ saved, toggle, clearAll }), [saved, toggle, clearAll])
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>
 }
 
-export function useFavorites(): FavoritesState {
+export function useFavorites(): FavoritesValue {
   const ctx = useContext(FavoritesContext)
   if (!ctx) throw new Error('useFavorites deve ser usado dentro de FavoritesProvider')
   return ctx
