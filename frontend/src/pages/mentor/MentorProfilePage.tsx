@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { LogOut } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -8,6 +9,7 @@ import { ErrorState, Loading } from '../../components/ui/States'
 import { useAsync } from '../../hooks/useAsync'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { DashHead } from '../../layouts/DashboardLayout'
+import { useAuth } from '../../contexts/AuthContext'
 import { env } from '../../lib/env'
 import { getErrorMessage, getFieldErrors } from '../../lib/errors'
 import { mentorProfileSchema, type MentorProfileForm } from '../../schemas'
@@ -18,6 +20,7 @@ const modalityOptions = ['Online', 'Presencial', 'Online · Presencial']
 
 export default function MentorProfilePage() {
   useDocumentTitle('Perfil profissional')
+  const { logout } = useAuth()
   const { data, loading, error, reload } = useAsync(() => mentorAreaService.profile(), [])
   const fileRef = useRef<HTMLInputElement>(null)
   const [photo, setPhoto] = useState<string | undefined>()
@@ -109,7 +112,7 @@ export default function MentorProfilePage() {
 
   return (
     <>
-      <DashHead title="O teu perfil profissional" subtitle="Apresenta o teu percurso e escolhe o que fica visível para os estudantes." />
+      <DashHead title="O teu perfil profissional" subtitle="Apresenta o teu percurso e escolhe o que fica visível para os estudantes." action={<button type="button" onClick={() => void logout()} className="btn inline-flex items-center gap-2"><LogOut size={16} aria-hidden /> Terminar sessão</button>} />
       {pending && (
         <Notice tone="warn" title="Verificação pendente" className="mb-[28px] !py-[20px]">
           O perfil está por analisar. A revisão é independente de pagamentos e não está garantida pela publicação de um serviço.

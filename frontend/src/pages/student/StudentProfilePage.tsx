@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { LogOut } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -10,6 +11,7 @@ import { academicLevels, areas, countries, nationalities } from '../../data/opti
 import { useAsync } from '../../hooks/useAsync'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { DashHead } from '../../layouts/DashboardLayout'
+import { useAuth } from '../../contexts/AuthContext'
 import { env } from '../../lib/env'
 import { getErrorMessage, getFieldErrors } from '../../lib/errors'
 import { levelLabel } from '../../lib/format'
@@ -20,6 +22,7 @@ const levelOptions = Object.values(levelLabel)
 
 export default function StudentProfilePage() {
   useDocumentTitle('O meu perfil')
+  const { logout } = useAuth()
   const { data, loading, error, reload } = useAsync(() => studentService.profile(), [])
   const {
     register,
@@ -68,7 +71,7 @@ export default function StudentProfilePage() {
 
   return (
     <>
-      <DashHead eyebrow="O meu perfil" title="Um perfil simples. Sugestões mais úteis." subtitle="Partilha apenas o necessário para orientar a pesquisa de oportunidades." />
+      <DashHead eyebrow="O meu perfil" title="Um perfil simples. Sugestões mais úteis." subtitle="Partilha apenas o necessário para orientar a pesquisa de oportunidades." action={<button type="button" onClick={() => void logout()} className="btn inline-flex items-center gap-2"><LogOut size={16} aria-hidden /> Terminar sessão</button>} />
       <div className="grid items-start gap-7 lg:grid-cols-[1fr_320px]">
         <form onSubmit={onSubmit} noValidate className="card p-7 max-sm:p-5">
           <div className="flex items-center gap-3 border-b border-line pb-[28px]">

@@ -1,4 +1,4 @@
-import { ArrowUpRight, Menu, X } from 'lucide-react'
+import { ArrowUpRight, LogOut, Menu, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from '../components/ui/Logo'
@@ -50,7 +50,7 @@ const config: Record<Area, { label: string; base: string; items: Array<{ to: str
   },
 }
 
-function SidebarContent({ area, onNavigate }: { area: Area; onNavigate?: () => void }) {
+function SidebarContent({ area, onNavigate, onLogout }: { area: Area; onNavigate?: () => void; onLogout?: () => Promise<void> }) {
   const c = config[area]
   const cls = ({ isActive }: { isActive: boolean }) => `side-link ${isActive ? 'active' : ''}`
   return (
@@ -65,6 +65,9 @@ function SidebarContent({ area, onNavigate }: { area: Area; onNavigate?: () => v
             {i.label}
           </NavLink>
         ))}
+        <button type="button" className="side-link mt-2 inline-flex w-full items-center gap-3 text-left" onClick={() => { onNavigate?.(); void onLogout?.() }}>
+          <LogOut size={16} aria-hidden /> Terminar sessão
+        </button>
       </nav>
       <div className="mt-[36px] px-6 text-[12px] leading-[18px] text-[#b9cdd5]">
         {c.help ? (
@@ -117,7 +120,7 @@ export function DashboardLayout({ area }: { area: Area }) {
   return (
     <div className="min-h-screen bg-mist lg:grid lg:grid-cols-[248px_1fr]">
       <aside className="sticky top-0 hidden h-screen overflow-y-auto bg-deep lg:block" aria-label="Navegação da área">
-        <SidebarContent area={area} />
+        <SidebarContent area={area} onLogout={logout} />
       </aside>
 
       {/* Cabeçalho móvel */}
@@ -125,6 +128,9 @@ export function DashboardLayout({ area }: { area: Area }) {
         <Logo to="/" />
         <div className="flex items-center gap-4 text-[12px] font-bold text-green">
           <span>PT / EN</span>
+          <button type="button" onClick={() => void logout()} className="inline-flex items-center gap-1 text-navy" aria-label="Terminar sessão">
+            <LogOut size={16} aria-hidden /> <span className="sr-only">Terminar sessão</span>
+          </button>
           <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)} className="text-navy">
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -132,7 +138,7 @@ export function DashboardLayout({ area }: { area: Area }) {
       </div>
       {open && (
         <div className="bg-deep pb-6 lg:hidden">
-          <SidebarContent area={area} onNavigate={() => setOpen(false)} />
+          <SidebarContent area={area} onNavigate={() => setOpen(false)} onLogout={logout} />
           <div className="px-6 pt-6">
             <button type="button" className="btn btn-sm btn-block" onClick={() => logout()}>
               Terminar sessão
@@ -150,6 +156,9 @@ export function DashboardLayout({ area }: { area: Area }) {
           <div className="flex items-center gap-[14px] text-[12px] font-normal text-green">
             <span>PT / EN</span>
             {userNode}
+            <button type="button" onClick={() => void logout()} className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-navy hover:bg-mist" aria-label="Terminar sessão">
+              <LogOut size={15} aria-hidden /> Terminar sessão
+            </button>
           </div>
         </div>
         <main className="px-10 pb-16 pt-[48px] max-lg:px-6 max-lg:pt-6">

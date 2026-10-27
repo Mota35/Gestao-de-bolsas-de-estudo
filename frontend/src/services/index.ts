@@ -17,12 +17,12 @@ import type {
 const clean = <T extends object>(o: T) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== '' && v !== undefined && v !== null && !(Array.isArray(v) && !v.length)))
 
 export const authService = {
-  me: () => http.get<SessionUser>('/auth/me').then((r) => r.data),
-  login: (data: { email: string; password: string }) => http.post<SessionUser>('/auth/login', data).then((r) => r.data),
-  register: (data: { name: string; email: string; password: string; role: 'estudante' | 'mentor'; newsletter: boolean }) => http.post('/auth/register', data).then((r) => r.data),
+  me: () => http.get<Omit<SessionUser, 'initials'> & { role: string }>('/users/me').then((r) => ({ ...r.data, role: r.data.role.toLowerCase() as SessionUser['role'], initials: r.data.name.split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase() })),
+  login: (data: { email: string; password: string }) => http.post<{ user: Omit<SessionUser, 'initials'> & { role: string } }>('/auth/login', data).then((r) => { const u = r.data.user; return { ...u, role: u.role.toLowerCase() as SessionUser['role'], initials: u.name.split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase() } }),
+  register: (data: { name: string; email: string; password: string; role: 'estudante' | 'mentor'; newsletter: boolean }) => http.post(`/auth/register/${data.role === 'estudante' ? 'student' : 'mentor'}`, { name: data.name, email: data.email, password: data.password }).then((r) => r.data),
   logout: () => http.post('/auth/logout').then(() => undefined),
   forgotPassword: (email: string) => http.post('/auth/forgot-password', { email }).then((r) => r.data),
-  resetPassword: (data: { token: string; password: string }) => http.post('/auth/reset-password', data).then((r) => r.data),
+  resetPassword: (data: { token: string; password: string }) => http.post('/auth/reset-password', { token: data.token, newPassword: data.password }).then((r) => r.data),
 }
 
 export const scholarshipService = {

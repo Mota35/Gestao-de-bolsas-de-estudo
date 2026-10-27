@@ -17,6 +17,18 @@ export const http = axios.create({
 
 export const UNAUTHORIZED_EVENT = 'kwanza:unauthorized'
 
+// A API responde no formato { data, meta? }; expõe data às páginas e incorpora
+// os metadados de paginação no objecto esperado pelo frontend.
+http.interceptors.response.use((response) => {
+  const payload = response.data
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    response.data = payload.meta && Array.isArray(payload.data)
+      ? { items: payload.data, ...payload.meta }
+      : payload.data
+  }
+  return response
+})
+
 http.interceptors.response.use(
   (r) => r,
   (error) => {
