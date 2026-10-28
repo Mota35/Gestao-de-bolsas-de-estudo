@@ -27,10 +27,9 @@ export function createCtx(
   opts: { connectors?: ScholarshipConnector[] } = {},
 ): Ctx {
   const config = buildConfig({ ...process.env, ...overrides });
-  // PRISMA_PG_ADAPTER=1: cliente gerado sem engine nativo (ambientes sem acesso aos binários do Prisma)
   const db = createDb(
     config.databaseUrl,
-    process.env.PRISMA_PG_ADAPTER === '1' ? new PrismaPg({ connectionString: config.databaseUrl }) : undefined,
+    new PrismaPg({ connectionString: config.databaseUrl }),
   );
   const mailer = new InMemoryMailer();
   const logger = createLogger('silent', false);

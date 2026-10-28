@@ -18,6 +18,10 @@ const common = {
   currency: z.enum(SUPPORTED_CURRENCIES).default('AOA'),
   durationMinutes: z.number().int().min(5).max(100_000).nullable().optional(),
   mode: z.enum(DELIVERY_MODES),
+  availability: z.string().trim().max(500).nullable().optional(),
+  conditions: z.string().trim().max(4000).nullable().optional(),
+  place: z.string().trim().max(180).nullable().optional(),
+  showWhatsApp: z.boolean().default(false),
 };
 
 export const createServiceSchema = z
@@ -52,7 +56,7 @@ export const updateCourseSchema = makePartial(
   createCourseSchema.extend({ currency: z.enum(SUPPORTED_CURRENCIES) }),
 );
 
-export const ownerStatusSchema = z.object({ to: z.enum(['PUBLISHED', 'UNPUBLISHED', 'ARCHIVED']) }).strict();
+export const ownerStatusSchema = z.object({ to: z.enum(['DRAFT', 'PUBLISHED', 'UNPUBLISHED', 'ARCHIVED']) }).strict();
 
 export const idParams = z.object({ id: z.uuid() });
 

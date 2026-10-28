@@ -21,6 +21,7 @@ export class UsersService {
             fieldOfStudy: user.studentProfile.fieldOfStudy,
             destinationCountries: user.studentProfile.destinationCountries,
             languages: user.studentProfile.languages,
+            academicPreferences: user.studentProfile.academicPreferences,
           }
         : null,
       mentorProfile: user.mentorProfile
@@ -49,5 +50,42 @@ export class UsersService {
       }
     });
     return this.getMe(userId);
+  }
+
+  async getPreferences(userId: string) {
+    const p = await this.db.studentProfile.findUnique({ where: { userId }, select: { academicPreferences: true } });
+    const stored = (p?.academicPreferences as Record<string, unknown> | null) ?? {};
+    return {
+      language: 'pt', notifyOpportunities: true, notifyDeadlines: true, notifyCourses: true,
+      notifyOptional: false, allowSuggestions: true, ...Object.fromEntries(
+        ['language', 'notifyOpportunities', 'notifyDeadlines', 'notifyCourses', 'notifyOptional', 'allowSuggestions']
+          .filter((key) => stored[key] !== undefined).map((key) => [key, stored[key]]),
+      ),
+    };
+  }
+
+  async savePreferences(userId: string, preferences: Record<string, unknown>) {
+    const existing = await this.db.studentProfile.findUnique({ where: { userId }, select: { academicPreferences: true } });
+    const targetLevel = (existing?.academicPreferences as Record<string, unknown> | null)?.targetLevel;
+    const value = { ...(targetLevel ? { targetLevel } : {}), ...preferences };
+    await this.db.studentProfile.upsert({
+      where: { userId }, create: { userId, academicPreferences: value },
+      update: { academicPreferences: value },
+    });
+    return preferences;
+  }
+
+  async requestData(userId: string, kind: 'copia' | 'eliminacao') {
+    return this.db.studentDataRequest.create({ data: { userId, kind } });
+  }
+
+  async recommendations(userId: string) {
+    const profile = await this.db.studentProfile.findUnique({ where: { userId } });
+    const rows = await this.db.scholarship.findMany({
+      where: { publicationStatus: 'PUBLISHED', ...(profile?.destinationCountries.length ? { destinationCountry: { in: profile.destinationCountries } } : {}) },
+      orderBy: [{ applicationDeadline: 'asc' }, { createdAt: 'desc' }], take: 6,
+      include: { sourceLinks: { where: { status: 'ACTIVE' }, take: 1, include: { source: true } } },
+    });
+    return rows;
   }
 }

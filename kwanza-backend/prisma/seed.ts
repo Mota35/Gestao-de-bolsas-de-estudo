@@ -1,16 +1,19 @@
 import { PrismaClient, UserRole, ScholarshipPublicationStatus, VerificationStatus,
   ScholarshipSourceType, CollectionMethod, IntegrationStatus, DeliveryMode,
   ServiceCategory, ServicePublicationStatus, CoursePublicationStatus } from "@prisma/client";
-import { hash } from "bcryptjs";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { buildConfig } from "../src/config/index.js";
+import { PasswordHasher } from "../src/utils/password.js";
 
-const prisma = new PrismaClient();
+const config = buildConfig();
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: config.databaseUrl }) });
 
 async function main() {
   const demoPassword = process.env.SEED_DEMO_PASSWORD;
   if (!demoPassword || demoPassword.length < 12) {
     throw new Error("Defina SEED_DEMO_PASSWORD com pelo menos 12 caracteres antes de executar o seed.");
   }
-  const passwordHash = await hash(demoPassword, 12);
+  const passwordHash = await new PasswordHasher(config.argon2).hash(demoPassword);
 
   const student = await prisma.user.upsert({
     where: { email: "demo.student@example.test" },

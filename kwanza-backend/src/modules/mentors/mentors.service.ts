@@ -51,14 +51,22 @@ export class MentorsService {
 
   /** Nunca inclui dados privados (número não autorizado, motivo de rejeição, revisor). */
   toPublic(p: any, opts: { includeServices?: boolean } = {}) {
+    const prices = [...(p.services ?? []).map((s: any) => Number(s.price)), ...(p.courses ?? []).map((s: any) => Number(s.price))];
     return {
       id: p.id,
       name: p.user.name,
-      bio: p.bio,
+      headline: p.headline ?? p.specialties?.[0] ?? 'Mentor',
+      location: p.location ?? '',
+      modalities: p.modalities ?? [],
+      availability: p.availabilitySchedule?.join(' · ') ?? '',
+      availabilityNote: p.availabilityPeriod ?? undefined,
+      photo: p.photoUrl ?? undefined,
+      bio: p.bio ? [p.bio] : [],
       specialties: p.specialties,
       qualifications: p.qualifications,
       experienceYears: p.experienceYears,
       languages: p.languages,
+      priceFrom: prices.length ? Math.min(...prices) : 0,
       // só é "verificado" após aprovação administrativa; as consultas públicas já só devolvem VERIFIED
       verified: p.verificationStatus === 'VERIFIED',
       whatsapp: publicWhatsapp(p),
@@ -70,7 +78,14 @@ export class MentorsService {
     return {
       id: p.id,
       name: p.user.name,
+      title: p.headline ?? '',
       bio: p.bio,
+      experience: p.experience ?? '',
+      location: p.location ?? '',
+      modalities: p.modalities ?? [],
+      photo: p.photoUrl ?? undefined,
+      availabilityPeriod: p.availabilityPeriod ?? '',
+      schedule: p.availabilitySchedule ?? [],
       specialties: p.specialties,
       qualifications: p.qualifications,
       experienceYears: p.experienceYears,
@@ -92,6 +107,12 @@ export class MentorsService {
     const and: Record<string, unknown>[] = [{ verificationStatus: 'VERIFIED' }, { user: { isActive: true } }];
     if (q.specialty) and.push({ specialties: { has: q.specialty } });
     if (q.language) and.push({ languages: { has: q.language } });
+    if (q.modality) and.push({ modalities: { has: q.modality === 'ONLINE' ? 'Online' : 'Presencial' } });
+    if (q.maxPrice !== undefined) and.push({ OR: [
+      { services: { some: { publicationStatus: 'PUBLISHED', price: { lte: q.maxPrice } } } },
+      { courses: { some: { publicationStatus: 'PUBLISHED', price: { lte: q.maxPrice } } } },
+    ] });
+    if (q.availability) and.push({ availabilityPeriod: { contains: q.availability, mode: 'insensitive' } });
     if (q.q) {
       and.push({
         OR: [
@@ -107,11 +128,15 @@ export class MentorsService {
       this.deps.db.mentorProfile.findMany({
         where,
         orderBy: [{ reviewedAt: 'desc' }, { createdAt: 'desc' }],
-        include: { user: PUBLIC_USER },
+        include: {
+          user: PUBLIC_USER,
+          services: { where: { publicationStatus: 'PUBLISHED' }, take: 20 },
+          courses: { where: { publicationStatus: 'PUBLISHED' }, take: 20 },
+        },
         ...pageArgs(q),
       }),
     ]);
-    return { items: rows.map((r: any) => this.toPublic(r)), meta: pageMeta(q, total) };
+    return { items: rows.map((r: any) => this.toPublic(r, { includeServices: true })), meta: pageMeta(q, total) };
   }
 
   async getPublic(id: string) {
@@ -154,7 +179,8 @@ export class MentorsService {
       ]);
     }
     // Se o número for removido, a divulgação é desligada.
-    const data: Record<string, unknown> = { ...input };
+    const { name, ...profileInput } = input;
+    const data: Record<string, unknown> = { ...profileInput };
     if (input.whatsappNumber === null) data.allowWhatsappPublic = false;
 
     // Alterações às credenciais de um perfil verificado exigem nova revisão.
@@ -165,6 +191,7 @@ export class MentorsService {
     if (needsReview) data.verificationStatus = 'PENDING';
 
     const updated = await db.$transaction(async (tx: Tx) => {
+      if (name && name !== current.user.name) await tx.user.update({ where: { id: userId }, data: { name } });
       const u = await tx.mentorProfile.update({ where: { id: current.id }, data, include: { user: PUBLIC_USER } });
       if (needsReview) {
         await audit.record(
@@ -175,6 +202,20 @@ export class MentorsService {
       return u;
     });
     return { ...this.toOwner(updated), reReviewRequired: needsReview };
+  }
+
+  async saveAvailability(userId: string, period: string, schedule: string[]) {
+    const p = await this.ownProfile(userId);
+    const updated = await this.deps.db.mentorProfile.update({
+      where: { id: p.id }, data: { availabilityPeriod: period, availabilitySchedule: schedule }, include: { user: PUBLIC_USER },
+    });
+    return this.toOwner(updated);
+  }
+
+  async savePhoto(userId: string, photoData: string) {
+    const p = await this.ownProfile(userId);
+    const updated = await this.deps.db.mentorProfile.update({ where: { id: p.id }, data: { photoUrl: photoData }, include: { user: PUBLIC_USER } });
+    return this.toOwner(updated);
   }
 
   /** Submete (ou re-submete após rejeição) o perfil para verificação administrativa. */

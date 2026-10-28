@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { createApp } from './app.js';
 import { buildConfig } from './config/index.js';
 import { createDb } from './db/prisma.js';
@@ -8,7 +9,7 @@ import { createLogger } from './utils/logger.js';
 
 const config = buildConfig();
 const logger = createLogger(config.logLevel, config.isProduction);
-const db = createDb(config.databaseUrl);
+const db = createDb(config.databaseUrl, new PrismaPg({ connectionString: config.databaseUrl }));
 const mailer = createMailer(config.mail, logger);
 const { app, authService } = createApp({ config, db, logger, mailer });
 

@@ -89,7 +89,7 @@ export class AuthService {
 
   async register(
     role: Extract<UserRole, 'STUDENT' | 'MENTOR'>,
-    input: { name: string; email: string; password: string; bio?: string; specialties?: string[] },
+    input: { name: string; email: string; password: string; termsAccepted?: true; newsletterConsent?: boolean; bio?: string; specialties?: string[] },
   ): Promise<PublicUser> {
     const { db, hasher } = this.deps;
     const existing = await db.user.findUnique({ where: { email: input.email }, select: { id: true } });
@@ -100,7 +100,7 @@ export class AuthService {
     try {
       user = await db.$transaction(async (tx: Tx) => {
         const created = await tx.user.create({
-          data: { name: input.name, email: input.email, passwordHash, role },
+          data: { name: input.name, email: input.email, passwordHash, role, termsAcceptedAt: input.termsAccepted ? new Date() : null, newsletterConsent: input.newsletterConsent ?? false },
         });
         if (role === 'STUDENT') {
           await tx.studentProfile.create({ data: { userId: created.id } });

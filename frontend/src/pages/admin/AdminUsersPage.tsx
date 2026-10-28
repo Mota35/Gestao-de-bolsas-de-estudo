@@ -14,7 +14,7 @@ import { getErrorMessage } from '../../lib/errors'
 import { adminService } from '../../services'
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-const roles = ['Estudante', 'Mentor', 'Moderador', 'Administrador']
+const roles = ['Estudante', 'Mentor', 'Administrador']
 
 export default function AdminUsersPage() {
   useDocumentTitle('Utilizadores e papéis')

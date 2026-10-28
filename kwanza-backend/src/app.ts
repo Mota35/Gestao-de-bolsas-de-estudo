@@ -43,6 +43,7 @@ import {
 import { ScholarshipsService } from './modules/scholarships/scholarships.service.js';
 import { UsersService } from './modules/users/users.service.js';
 import { createUsersRoutes } from './modules/users/users.routes.js';
+import { createSupportRoutes } from './modules/support/support.routes.js';
 import { PasswordHasher } from './utils/password.js';
 
 export interface AppDeps {
@@ -109,6 +110,8 @@ export function createApp(deps: AppDeps): { app: Express; authService: AuthServi
   );
   app.use(compression());
   app.use(limits.global);
+  // Fotos de perfil são enviadas como data URL; isolamos o limite maior neste único endpoint.
+  app.use('/api/v1/mentors/me/photo', express.json({ limit: '5mb', strict: true }));
   app.use(express.json({ limit: config.bodyLimit, strict: true }));
   app.use(cookieParser());
   app.use(csrfOriginCheck(config));
@@ -126,6 +129,7 @@ export function createApp(deps: AppDeps): { app: Express; authService: AuthServi
   const authController = createAuthController(authService, config);
   v1.use('/auth', createAuthRoutes(authController, mw, limits));
   v1.use('/users', createUsersRoutes(usersService, mw));
+  v1.use('/support', createSupportRoutes(db));
 
   const scholarshipsController = createScholarshipsController(scholarships);
   v1.use('/scholarships', createScholarshipsRoutes(scholarshipsController, mw));

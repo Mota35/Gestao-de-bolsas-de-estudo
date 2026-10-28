@@ -16,8 +16,8 @@ const ENTITY = { service: 'MENTOR_SERVICE', course: 'COURSE' } as const;
 // por moderação, que o mentor não pode reverter.
 const OWNER_TRANSITIONS: Record<ContentPublicationStatus, ContentPublicationStatus[]> = {
   DRAFT: ['PUBLISHED', 'ARCHIVED'],
-  PUBLISHED: ['UNPUBLISHED', 'ARCHIVED'],
-  UNPUBLISHED: ['PUBLISHED', 'ARCHIVED'],
+  PUBLISHED: ['DRAFT', 'UNPUBLISHED', 'ARCHIVED'],
+  UNPUBLISHED: ['DRAFT', 'PUBLISHED', 'ARCHIVED'],
   ARCHIVED: [],
 };
 
@@ -27,6 +27,11 @@ const MENTOR_SELECT = {
     verificationStatus: true,
     whatsappNumber: true,
     allowWhatsappPublic: true,
+    headline: true,
+    location: true,
+    modalities: true,
+    availabilityPeriod: true,
+    availabilitySchedule: true,
     user: { select: { id: true, name: true, isActive: true, emailVerifiedAt: true } },
   },
 } as const;
@@ -48,6 +53,11 @@ export class CatalogService {
         id: mentorProfile.id,
         name: mentorProfile.user.name,
         verified: mentorProfile.verificationStatus === 'VERIFIED',
+        headline: mentorProfile.headline,
+        location: mentorProfile.location,
+        modalities: mentorProfile.modalities,
+        availability: mentorProfile.availabilitySchedule.join(' · '),
+        availabilityNote: mentorProfile.availabilityPeriod,
         whatsapp: publicWhatsapp(
           mentorProfile,
           `Olá! Tenho interesse em "${row.title}" que vi na Kwanza Oportunidades.`,

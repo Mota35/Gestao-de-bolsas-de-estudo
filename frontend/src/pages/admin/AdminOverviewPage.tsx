@@ -51,10 +51,10 @@ export default function AdminOverviewPage() {
       <div className="mt-[28px] grid items-start gap-7 lg:grid-cols-[1fr_370px]">
         <section className="card p-6 pb-[22px]">
           <div className="flex items-start justify-between gap-3">
-            <h2 className="display text-[24px] leading-8">Consultas por semana</h2>
+          <h2 className="display text-[24px] leading-8">Acções registadas por semana</h2>
             {demo && <Dot tone="gray">Dados fictícios</Dot>}
           </div>
-          <p className="mt-[14px] text-[13px] text-muted">Sessões de exemplo · Outubro de 2026</p>
+          <p className="mt-[14px] text-[13px] text-muted">Eventos de auditoria nos últimos 28 dias</p>
           <div
             role="img"
             aria-label={`Consultas por semana: ${data.weekly.map((w) => `${w.label}: ${w.value}`).join('; ')}`}
@@ -69,11 +69,11 @@ export default function AdminOverviewPage() {
             ))}
           </div>
           <p className="small mt-[18px] text-[12px]">
-            Total {demo ? 'ilustrativo' : ''}: {total.toLocaleString('pt-PT').replace(/ /g, ' ')} sessões.{demo ? ' Sem dados pessoais ou telemetria real.' : ''}
+            Total {demo ? 'ilustrativo' : ''}: {total.toLocaleString('pt-PT').replace(/ /g, ' ')} acções registadas.
           </p>
         </section>
         <section className="card p-6 pb-[22px]">
-          <h2 className="display text-[24px] leading-8">Conteúdo consultado</h2>
+          <h2 className="display text-[24px] leading-8">Conteúdo publicado</h2>
           <ul className="mt-[22px] space-y-[18px]">
             {data.content.map((c) => (
               <li key={c.label}>

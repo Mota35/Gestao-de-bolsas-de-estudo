@@ -4,6 +4,7 @@
  * A senha é lida de ADMIN_PASSWORD ou pedida no terminal (sem eco). Nunca é registada em logs.
  */
 import 'dotenv/config';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { createInterface } from 'node:readline';
 import { buildConfig } from '../src/config/index.js';
 import { createDb } from '../src/db/prisma.js';
@@ -27,7 +28,7 @@ async function main() {
   const issues = passwordPolicyIssues(password, email);
   if (issues.length) throw new Error(issues.join(' '));
 
-  const db = createDb(config.databaseUrl);
+  const db = createDb(config.databaseUrl, new PrismaPg({ connectionString: config.databaseUrl }));
   const hash = await new PasswordHasher(config.argon2).hash(password);
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) throw new Error('Já existe um utilizador com este email.');

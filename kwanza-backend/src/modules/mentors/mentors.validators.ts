@@ -19,7 +19,12 @@ const phone = z
 
 export const updateMentorProfileSchema = z
   .object({
+    name: z.string().trim().min(2).max(120).optional(),
+    headline: z.string().trim().max(180).nullable().optional(),
     bio: z.string().trim().max(4000).nullable().optional(),
+    experience: z.string().trim().max(4000).nullable().optional(),
+    location: z.string().trim().max(160).nullable().optional(),
+    modalities: z.array(z.string().trim().min(2).max(60)).max(10).optional(),
     specialties: z.array(tag).max(20).optional(),
     qualifications: z.array(z.string().trim().min(2).max(200)).max(20).optional(),
     experienceYears: z.number().int().min(0).max(70).nullable().optional(),
@@ -30,10 +35,22 @@ export const updateMentorProfileSchema = z
   .strict()
   .refine((v) => Object.keys(v).length > 0, 'Indique pelo menos um campo.');
 
+export const availabilitySchema = z.object({
+  period: z.string().trim().min(2).max(120),
+  schedule: z.array(z.string().trim().min(1).max(300)).min(1).max(30),
+}).strict();
+
+export const photoSchema = z.object({
+  photoData: z.string().regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/).max(4_200_000),
+}).strict();
+
 export const listMentorsQuery = paginationSchema.extend({
   q: z.string().trim().min(1).max(100).optional(),
   specialty: tag.optional(),
   language: z.string().trim().min(2).max(60).optional(),
+  modality: z.enum(['ONLINE', 'IN_PERSON']).optional(),
+  maxPrice: z.coerce.number().min(0).optional(),
+  availability: z.string().trim().min(1).max(120).optional(),
 });
 
 export const adminListMentorsQuery = paginationSchema.extend({

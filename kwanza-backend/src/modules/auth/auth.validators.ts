@@ -22,7 +22,7 @@ function withPolicy<T extends z.ZodTypeAny>(schema: T, passwordKey: string) {
 }
 
 export const registerStudentSchema = withPolicy(
-  z.object({ name: nameField, email: emailField, password: passwordField }).strict(),
+  z.object({ name: nameField, email: emailField, password: passwordField, termsAccepted: z.literal(true).optional(), newsletterConsent: z.boolean().default(false) }).strict(),
   'password',
 );
 
@@ -32,6 +32,8 @@ export const registerMentorSchema = withPolicy(
       name: nameField,
       email: emailField,
       password: passwordField,
+      termsAccepted: z.literal(true).optional(),
+      newsletterConsent: z.boolean().default(false),
       bio: z.string().trim().max(4000).optional(),
       specialties: z.array(z.string().trim().min(2).max(80)).max(20).default([]),
     })

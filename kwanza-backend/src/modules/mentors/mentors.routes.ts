@@ -18,6 +18,13 @@ export function createMentorsRoutes(s: MentorsService, mw: AuthMiddlewares) {
   r.post('/me/submit', mw.requireAuth, mw.requireRole('MENTOR'), asyncHandler(async (req, res) => {
     res.json({ data: await s.submitForVerification(req.user!.id) });
   }));
+  r.put('/me/availability', mw.requireAuth, mw.requireRole('MENTOR'), validate({ body: v.availabilitySchema }), asyncHandler(async (req, res) => {
+    res.json({ data: await s.saveAvailability(req.user!.id, req.body.period, req.body.schedule) });
+  }));
+  r.post('/me/photo', mw.requireAuth, mw.requireRole('MENTOR'), validate({ body: v.photoSchema }), asyncHandler(async (req, res) => {
+    const profile = await s.savePhoto(req.user!.id, req.body.photoData);
+    res.json({ data: { photo: profile.photo } });
+  }));
 
   // Público: apenas mentores verificados
   r.get('/', validate({ query: v.listMentorsQuery }), asyncHandler(async (req, res) => {

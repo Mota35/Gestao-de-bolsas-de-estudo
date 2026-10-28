@@ -165,6 +165,13 @@ export function DashboardLayout({ area }: { area: Area }) {
           <Outlet />
         </main>
       </div>
+      <button
+        type="button"
+        onClick={() => void logout()}
+        className="fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 rounded-lg bg-[#0c2634] px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-[#174355]"
+      >
+        <LogOut size={17} aria-hidden /> Terminar sessão
+      </button>
     </div>
   )
 }

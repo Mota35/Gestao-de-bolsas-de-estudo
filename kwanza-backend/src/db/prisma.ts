@@ -4,10 +4,9 @@ export type Db = InstanceType<typeof PrismaClient>;
 /** Cliente transaccional (dentro de $transaction). */
 export type Tx = Omit<Db, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
-/** `adapter` é opcional: só necessário se o cliente for gerado com driver adapters (engineType = "client"). */
-export function createDb(databaseUrl: string, adapter?: unknown): Db {
-  if (adapter) return new (PrismaClient as any)({ adapter });
-  return new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+/** O cliente é gerado sem engine nativo e liga ao PostgreSQL através do driver adapter. */
+export function createDb(_databaseUrl: string, adapter: unknown): Db {
+  return new (PrismaClient as any)({ adapter });
 }
 
 export function isUniqueViolation(err: unknown): boolean {

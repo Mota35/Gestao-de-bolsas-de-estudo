@@ -15,6 +15,7 @@ export const updateMeSchema = z
         fieldOfStudy: z.string().trim().max(160).nullable().optional(),
         destinationCountries: list(20, 100).optional(),
         languages: list(20, 60).optional(),
+        academicPreferences: z.record(z.string(), z.unknown()).optional(),
       })
       .strict()
       .optional(),
