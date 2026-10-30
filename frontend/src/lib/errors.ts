@@ -6,9 +6,11 @@ export function getErrorMessage(error: unknown, fallback = 'Algo correu mal. Ten
   if (!axios.isAxiosError(error)) return fallback
   const status = error.response?.status
   const body = error.response?.data as ApiErrorBody | undefined
+  const serverMessage = body?.error?.message ?? body?.message
+  const details = body?.error?.details?.map((item) => item.field ? `${item.field}: ${item.message ?? ''}` : item.message ?? '').filter(Boolean)
   switch (status) {
     case 400:
-      return body?.message ?? 'O pedido não é válido. Verifica os dados e tenta novamente.'
+      return details?.length ? `${serverMessage ?? 'Dados inválidos.'} ${details.join(' · ')}` : serverMessage ?? 'O pedido não é válido. Verifica os dados e tenta novamente.'
     case 401:
       return body?.message ?? 'A sessão terminou ou os dados de acesso não estão correctos.'
     case 403:
@@ -16,9 +18,9 @@ export function getErrorMessage(error: unknown, fallback = 'Algo correu mal. Ten
     case 404:
       return 'Não encontrámos o que procuravas.'
     case 409:
-      return body?.message ?? 'Já existe um registo com estes dados.'
+      return serverMessage ?? 'Já existe um registo com estes dados.'
     case 422:
-      return body?.message ?? 'Alguns campos precisam de correcção.'
+      return serverMessage ?? 'Alguns campos precisam de correcção.'
     case 500:
     case 502:
     case 503:

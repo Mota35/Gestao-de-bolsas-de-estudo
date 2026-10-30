@@ -5,6 +5,7 @@ import { Logo } from '../components/ui/Logo'
 import { useAuth } from '../contexts/AuthContext'
 import { env } from '../lib/env'
 import { formatToday } from '../lib/format'
+import { LanguageSelect, languageText, useLanguage } from '../contexts/LanguageContext'
 
 export type Area = 'estudante' | 'mentor' | 'admin'
 
@@ -52,21 +53,29 @@ const config: Record<Area, { label: string; base: string; items: Array<{ to: str
 
 function SidebarContent({ area, onNavigate, onLogout }: { area: Area; onNavigate?: () => void; onLogout?: () => Promise<void> }) {
   const c = config[area]
+  const { language } = useLanguage()
+  const labels: Record<string, string> = {
+    'Painel': 'Dashboard', 'O meu perfil': 'My profile', 'Bolsas guardadas': 'Saved scholarships', 'Candidaturas': 'Applications',
+    'Cursos e mentorias': 'Courses and mentoring', 'Conta e preferências': 'Account and preferences', 'Painel e serviços': 'Dashboard and services',
+    'Perfil profissional': 'Professional profile', 'Criar serviço': 'Create service', 'Disponibilidade': 'Availability', 'Visão geral': 'Overview',
+    'Utilizadores e papéis': 'Users and roles', 'Aprovação de mentores': 'Mentor approvals', 'Gestão de bolsas': 'Scholarship management',
+    'Denúncias': 'Reports', 'Integrações': 'Integrations', 'Auditoria autorizada': 'Audit log', 'Terminar sessão': 'Sign out',
+  }
   const cls = ({ isActive }: { isActive: boolean }) => `side-link ${isActive ? 'active' : ''}`
   return (
     <>
       <div className="px-6 pt-[34px]">
         <Logo variant="side" to="/" />
-        <p className="mt-[33px] text-[11px] font-bold uppercase tracking-[0.02em] text-white">{c.label}</p>
+        <p className="mt-[33px] text-[11px] font-bold uppercase tracking-[0.02em] text-white">{languageText(language, c.label, ({ 'Área do estudante': 'Student area', 'Área do mentor': 'Mentor area', 'Administração · restrito': 'Administration · restricted' } as Record<string, string>)[c.label] ?? c.label)}</p>
       </div>
       <nav aria-label={c.label} className="mt-[42px] flex flex-col px-6" onClick={onNavigate}>
         {c.items.map((i) => (
           <NavLink key={i.to} to={i.to} end={i.end} className={cls}>
-            {i.label}
+            {languageText(language, i.label, labels[i.label] ?? i.label)}
           </NavLink>
         ))}
         <button type="button" className="side-link mt-2 inline-flex w-full items-center gap-3 text-left" onClick={() => { onNavigate?.(); void onLogout?.() }}>
-          <LogOut size={16} aria-hidden /> Terminar sessão
+          <LogOut size={16} aria-hidden /> {languageText(language, 'Terminar sessão', 'Sign out')}
         </button>
       </nav>
       <div className="mt-[36px] px-6 text-[12px] leading-[18px] text-[#b9cdd5]">
@@ -87,12 +96,12 @@ function SidebarContent({ area, onNavigate, onLogout }: { area: Area; onNavigate
           </>
         ) : (
           <>
-            <p className="text-[13px] font-bold text-white">Acesso autorizado</p>
-            <p className="mt-[18px]">Permissões por papel e acções registadas. Ambiente de demonstração.</p>
+            <p className="text-[13px] font-bold text-white">{languageText(language, 'Acesso autorizado', 'Authorised access')}</p>
+            <p className="mt-[18px]">{languageText(language, 'Permissões por papel e acções registadas. Ambiente de demonstração.', 'Role-based permissions and logged actions. Demo environment.')}</p>
           </>
         )}
         <Link to="/" className="mt-[36px] inline-flex items-center gap-1 hover:text-white">
-          Voltar ao site público <ArrowUpRight size={11} aria-hidden />
+          {languageText(language, 'Voltar ao site público', 'Back to public site')} <ArrowUpRight size={11} aria-hidden />
         </Link>
       </div>
     </>
@@ -101,6 +110,8 @@ function SidebarContent({ area, onNavigate, onLogout }: { area: Area; onNavigate
 
 export function DashboardLayout({ area }: { area: Area }) {
   const { user, logout } = useAuth()
+  const { language } = useLanguage()
+  const tr = (pt: string, en: string) => languageText(language, pt, en)
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
   useEffect(() => {
@@ -127,11 +138,11 @@ export function DashboardLayout({ area }: { area: Area }) {
       <div className="flex h-[70px] items-center justify-between bg-white px-6 lg:hidden">
         <Logo to="/" />
         <div className="flex items-center gap-4 text-[12px] font-bold text-green">
-          <span>PT / EN</span>
-          <button type="button" onClick={() => void logout()} className="inline-flex items-center gap-1 text-navy" aria-label="Terminar sessão">
-            <LogOut size={16} aria-hidden /> <span className="sr-only">Terminar sessão</span>
+          <LanguageSelect />
+          <button type="button" onClick={() => void logout()} className="inline-flex items-center gap-1 text-navy" aria-label={tr('Terminar sessão', 'Sign out')}>
+            <LogOut size={16} aria-hidden /> <span className="sr-only">{tr('Terminar sessão', 'Sign out')}</span>
           </button>
-          <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)} className="text-navy">
+          <button type="button" aria-label={open ? tr('Fechar menu', 'Close menu') : tr('Abrir menu', 'Open menu')} aria-expanded={open} onClick={() => setOpen((o) => !o)} className="text-navy">
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -141,7 +152,7 @@ export function DashboardLayout({ area }: { area: Area }) {
           <SidebarContent area={area} onNavigate={() => setOpen(false)} onLogout={logout} />
           <div className="px-6 pt-6">
             <button type="button" className="btn btn-sm btn-block" onClick={() => logout()}>
-              Terminar sessão
+              {tr('Terminar sessão', 'Sign out')}
             </button>
           </div>
         </div>
@@ -151,13 +162,13 @@ export function DashboardLayout({ area }: { area: Area }) {
         <div className="hidden h-[88px] items-center justify-between border-b border-line bg-white px-10 lg:flex">
           <p className="text-[13px] text-muted">
             {formatToday()}
-            {env.demoMode ? ' · Dados de demonstração' : ''}
+            {env.demoMode ? tr(' · Dados de demonstração', ' · Demo data') : ''}
           </p>
           <div className="flex items-center gap-[14px] text-[12px] font-normal text-green">
-            <span>PT / EN</span>
+            <LanguageSelect />
             {userNode}
-            <button type="button" onClick={() => void logout()} className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-navy hover:bg-mist" aria-label="Terminar sessão">
-              <LogOut size={15} aria-hidden /> Terminar sessão
+            <button type="button" onClick={() => void logout()} className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-2 text-navy hover:bg-mist" aria-label={tr('Terminar sessão', 'Sign out')}>
+              <LogOut size={15} aria-hidden /> {tr('Terminar sessão', 'Sign out')}
             </button>
           </div>
         </div>
@@ -170,7 +181,7 @@ export function DashboardLayout({ area }: { area: Area }) {
         onClick={() => void logout()}
         className="fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 rounded-lg bg-[#0c2634] px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-[#174355]"
       >
-        <LogOut size={17} aria-hidden /> Terminar sessão
+        <LogOut size={17} aria-hidden /> {tr('Terminar sessão', 'Sign out')}
       </button>
     </div>
   )

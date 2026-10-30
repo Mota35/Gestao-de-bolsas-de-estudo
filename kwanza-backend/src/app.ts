@@ -59,6 +59,8 @@ export function createApp(deps: AppDeps): { app: Express; authService: AuthServi
   const { config, db, logger, mailer } = deps;
   const app = express();
   app.disable('x-powered-by');
+  // Os dados autenticados do painel não devem ficar presos em respostas 304/cache do browser.
+  app.disable('etag');
   if (config.trustProxy > 0) app.set('trust proxy', config.trustProxy);
 
   // ---- serviços
@@ -126,6 +128,12 @@ export function createApp(deps: AppDeps): { app: Express; authService: AuthServi
 
   // ---- rotas
   const v1 = express.Router();
+  v1.use('/admin', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
   const authController = createAuthController(authService, config);
   v1.use('/auth', createAuthRoutes(authController, mw, limits));
   v1.use('/users', createUsersRoutes(usersService, mw));

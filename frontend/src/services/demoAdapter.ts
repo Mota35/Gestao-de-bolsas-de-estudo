@@ -123,7 +123,7 @@ const adminScholarships: AdminScholarshipRow[] = ['horizonte-engenharia', 'ponte
     'lideranca-gestao': 'Liderança e Gestão',
     'economia-criativa': 'Economia Criativa',
   }
-  return { id: s.id, slug, title: short[slug], deadline: s.deadline, verification: s.verification, active: true }
+  return { id: s.id, slug, title: short[slug], deadline: s.deadline, verification: s.verification, publicationStatus: 'PUBLISHED', active: true }
 })
 
 /* ----------------------------- utilitários ----------------------------- */

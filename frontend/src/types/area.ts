@@ -106,5 +106,6 @@ export interface AdminScholarshipRow {
   title: string
   deadline: string
   verification: 'verificada' | 'pendente'
+  publicationStatus: 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'ARCHIVED'
   active: boolean
 }

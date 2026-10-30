@@ -4,7 +4,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from '../components/ui/Logo'
 import { useAuth, homeForRole } from '../contexts/AuthContext'
 import { env } from '../lib/env'
-import { formatToday } from '../lib/format'
+import { LanguageSelect, languageText, useLanguage } from '../contexts/LanguageContext'
 
 const nav = [
   { to: '/', label: 'Início', end: true },
@@ -16,6 +16,7 @@ const nav = [
 
 function Header() {
   const [open, setOpen] = useState(false)
+  const { language } = useLanguage()
   const { user } = useAuth()
   const { pathname } = useLocation()
   useEffect(() => {
@@ -29,26 +30,26 @@ function Header() {
         <nav aria-label="Principal" className="flex gap-[18px] max-lg:hidden">
           {nav.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} className={navCls}>
-              {n.label}
+              {languageText(language, n.label, ({ 'Início': 'Home', 'Bolsas': 'Scholarships', 'Mentores': 'Mentors', 'Cursos e mentorias': 'Courses and mentoring', 'Sobre nós': 'About us' } as Record<string, string>)[n.label] ?? n.label)}
             </NavLink>
           ))}
         </nav>
         <div className="flex items-center gap-3.5 text-[12px] font-bold text-green max-lg:flex-1 max-lg:justify-center">
-          <span title="Idioma: português (alternativa em inglês indisponível nesta versão)">PT / EN</span>
+          <LanguageSelect />
           {user ? (
             <Link to={homeForRole(user.role)} className="max-lg:hidden">
-              A minha área
+              {languageText(language, 'A minha área', 'My dashboard')}
             </Link>
           ) : (
             <Link to="/entrar" className="max-lg:hidden">
-              Entrar
+              {languageText(language, 'Entrar', 'Sign in')}
             </Link>
           )}
         </div>
         <Link to={user ? homeForRole(user.role) : '/registo'} className="btn btn-primary btn-sm !min-h-[38px] !px-3.5 max-lg:hidden">
-          {user ? 'Abrir painel' : 'Criar conta'}
+          {languageText(language, user ? 'Abrir painel' : 'Criar conta', user ? 'Open dashboard' : 'Create account')}
         </Link>
-        <button type="button" className="hidden p-1 max-lg:block" aria-label={open ? 'Fechar menu' : 'Abrir menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <button type="button" className="hidden p-1 max-lg:block" aria-label={languageText(language, open ? 'Fechar menu' : 'Abrir menu', open ? 'Close menu' : 'Open menu')} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
         {open && (
@@ -56,21 +57,21 @@ function Header() {
             <nav aria-label="Menu móvel" className="flex flex-col">
               {nav.map((n) => (
                 <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `nav-link py-3 ${isActive ? 'active' : ''}`}>
-                  {n.label}
+                  {languageText(language, n.label, ({ 'Início': 'Home', 'Bolsas': 'Scholarships', 'Mentores': 'Mentors', 'Cursos e mentorias': 'Courses and mentoring', 'Sobre nós': 'About us' } as Record<string, string>)[n.label] ?? n.label)}
                 </NavLink>
               ))}
               <div className="mt-2 flex gap-3 border-t border-line pt-4">
                 {user ? (
                   <Link to={homeForRole(user.role)} className="btn btn-primary btn-sm flex-1">
-                    Abrir painel
+                    {languageText(language, 'Abrir painel', 'Open dashboard')}
                   </Link>
                 ) : (
                   <>
                     <Link to="/entrar" className="btn btn-sm flex-1">
-                      Entrar
+                    {languageText(language, 'Entrar', 'Sign in')}
                     </Link>
                     <Link to="/registo" className="btn btn-primary btn-sm flex-1">
-                      Criar conta
+                    {languageText(language, 'Criar conta', 'Create account')}
                     </Link>
                   </>
                 )}
@@ -152,12 +153,6 @@ export function PublicLayout({ bare = false }: { bare?: boolean }) {
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">
         Saltar para o conteúdo
       </a>
-      <div className="bg-navy text-[11.5px] leading-[33px] text-[#c9d6dd] max-lg:text-[11px]">
-        <div className="wrap">
-          <span className="max-lg:hidden">Plataforma educacional para Angola{env.demoMode ? ` · Conteúdo de demonstração · ${formatToday()}` : ''}</span>
-          <span className="lg:hidden">{env.demoMode ? `Conteúdo ilustrativo · ${formatToday().replace(' de outubro de ', ' out. ')}` : 'Plataforma educacional para Angola'}</span>
-        </div>
-      </div>
       <Header />
       <main id="conteudo" className="flex-1">
         <Outlet />

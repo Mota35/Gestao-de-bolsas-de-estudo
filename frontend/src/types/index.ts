@@ -150,4 +150,8 @@ export interface Preferences {
 export interface ApiErrorBody {
   message?: string
   errors?: Record<string, string[]>
+  error?: {
+    message?: string
+    details?: Array<{ field?: string; message?: string }>
+  }
 }
