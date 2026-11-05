@@ -24,7 +24,6 @@ function Hero() {
       <div className="wrap grid items-center gap-x-[76px] pb-[48px] pt-[64px] lg:grid-cols-[1fr_596px] max-lg:pb-8 max-lg:pt-6">
         <div className="max-lg:order-1">
           <p className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-green">
-            <span className="h-2 w-2 rounded-full bg-green" aria-hidden />
             <span className="max-lg:hidden">De Angola para novas possibilidades</span>
             <span className="lg:hidden">De Angola para o mundo</span>
           </p>
@@ -204,7 +203,7 @@ function Guide() {
       <div className="wrap grid items-center gap-[60px] lg:grid-cols-[1fr_518px]">
         <div>
           <p className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-muted">
-            <span className="h-2 w-2 rounded-full bg-muted" aria-hidden /> Guia do estudante
+            Guia do estudante
           </p>
           <h2 className="display mt-[18px] max-w-[640px] text-[36px] leading-[40px] max-lg:text-[32px]">
             <span className="max-lg:hidden">Uma candidatura forte começa antes do prazo.</span>

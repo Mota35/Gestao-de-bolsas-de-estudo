@@ -81,7 +81,7 @@ export const listScholarshipsQuery = paginationSchema.extend({
   area: csv(tag).optional(),
   mode: z.enum(DELIVERY_MODES).optional(),
   funding: z.enum(FUNDING_TYPES).optional(),
-  state: z.enum(VALIDITY_FILTERS).default('open'),
+  state: z.enum(VALIDITY_FILTERS).optional(),
   deadlineBefore: calendarDate.optional(),
   deadlineAfter: calendarDate.optional(),
   sort: z.enum(SORTS).default('deadline_asc'),

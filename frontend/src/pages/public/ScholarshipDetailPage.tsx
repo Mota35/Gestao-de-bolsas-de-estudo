@@ -6,6 +6,7 @@ import { Dot, Notice } from '../../components/ui/Notice'
 import { Breadcrumb } from '../../components/ui/PageHeader'
 import { ErrorState, Loading } from '../../components/ui/States'
 import { useFavorites } from '../../contexts/FavoritesContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { useAsync } from '../../hooks/useAsync'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { env } from '../../lib/env'
@@ -45,6 +46,7 @@ function Others({ current }: { current: string }) {
 
 function Detail({ s }: { s: Scholarship }) {
   const { saved, toggle } = useFavorites()
+  const { user } = useAuth()
   const open = callStatus(s.deadline) === 'aberta'
   const isSaved = saved.has(s.slug)
   const demo = env.demoMode && s.isDemo
@@ -133,10 +135,14 @@ function Detail({ s }: { s: Scholarship }) {
                 <li>Modalidade: {modalityLabel[s.modality]}</li>
               </ul>
               <hr className="my-[18px] border-0 border-t border-line" />
-              {s.officialUrl && open ? (
+              {s.officialUrl && open && user ? (
                 <a href={s.officialUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-block">
                   <ExternalLink size={16} aria-hidden /> Consultar candidatura oficial
                 </a>
+              ) : s.officialUrl && open ? (
+                <Link to={`/entrar?next=${encodeURIComponent(`/bolsas/${s.slug}`)}`} className="btn btn-primary btn-block">
+                  Inicia sessão para te candidatares
+                </Link>
               ) : (
                 <button
                   type="button"

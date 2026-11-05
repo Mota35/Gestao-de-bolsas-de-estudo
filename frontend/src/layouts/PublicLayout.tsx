@@ -113,7 +113,7 @@ export function Footer() {
   ]
   return (
     <footer className="bg-[#1d5273] text-[#d5e3eb]">
-      <div className="wrap grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12 lg:py-16">
+      <div className="wrap grid gap-10 px-6 py-14 sm:grid-cols-2 sm:px-10 lg:grid-cols-3 lg:gap-12 lg:px-16 lg:py-16">
         <section>
           <h2 className="mb-6 text-[20px] font-bold text-white">Explorar</h2>
           <div className="flex flex-col items-start gap-3 text-[15px]">
@@ -136,7 +136,7 @@ export function Footer() {
         <div className="wrap">
           <Logo variant="footer" />
           <p className="mt-3 text-[16px] font-semibold text-white">Bolsas, orientação e oportunidades em Angola</p>
-          <p className="mt-7 text-[13px]">© 2026 Kwanza Oportunidades · Angola · PT / EN</p>
+          <p className="mt-7 text-[13px]">© 2026 Kwanza Oportunidades - Angola</p>
           <p className="mx-auto mt-2 max-w-2xl text-[12px] leading-5">{env.demoMode
             ? 'Design demonstrativo. Pessoas, oportunidades e números fictícios. Sem envios ou ligações activas.'
             : 'Consulta sempre a fonte oficial antes de te candidatares.'}</p>
