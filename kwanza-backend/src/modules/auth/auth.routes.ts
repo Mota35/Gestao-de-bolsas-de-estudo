@@ -21,6 +21,7 @@ export function createAuthRoutes(
   r.get('/sessions', mw.requireAuth, c.listSessions);
   r.delete('/sessions/:id', mw.requireAuth, validate({ params: v.sessionIdParams }), c.revokeSession);
   r.post('/forgot-password', limiters.auth, validate({ body: v.forgotPasswordSchema }), c.forgotPassword);
+  r.post('/verify-reset-code', limiters.auth, validate({ body: v.verifyResetCodeSchema }), c.verifyResetCode);
   r.post('/reset-password', limiters.auth, validate({ body: v.resetPasswordSchema }), c.resetPassword);
   r.post('/verify-email', limiters.auth, validate({ body: v.verifyEmailSchema }), c.verifyEmail);
   r.post('/resend-verification', mw.requireAuth, limiters.sensitive, c.resendVerification);

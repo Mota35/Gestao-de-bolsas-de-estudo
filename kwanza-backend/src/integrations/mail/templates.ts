@@ -16,6 +16,14 @@ export function passwordResetEmail(name: string, link: string, ttlMinutes: numbe
   };
 }
 
+export function passwordResetCodeEmail(name: string, code: string, ttlMinutes: number) {
+  return {
+    subject: 'Código de recuperação de senha - Kwanza Oportunidades',
+    text: `Olá ${name},\n\nO teu código para redefinir a senha é: ${code}\n\nO código expira em ${ttlMinutes} minutos e só pode ser usado uma vez. Se não pediste esta alteração, ignora esta mensagem.`,
+    html: `<p>Olá ${esc(name)},</p><p>Usa este código para redefinir a senha:</p><p style="font-size:30px;font-weight:700;letter-spacing:8px">${code}</p><p>O código expira em ${ttlMinutes} minutos e só pode ser usado uma vez.</p><p>Se não pediste esta alteração, ignora esta mensagem.</p>`,
+  };
+}
+
 export function emailVerificationEmail(name: string, link: string, ttlHours: number) {
   return {
     subject: 'Confirme o seu email - Kwanza Oportunidades',

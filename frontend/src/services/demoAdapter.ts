@@ -260,6 +260,7 @@ function route(method: string, url: string, params: Params, body: Record<string,
     return u ? ok(u) : fail(401, 'Sem sessão.')
   }
   if (method === 'post' && url === '/auth/forgot-password') return ok({ message: 'Pedido recebido.' }, 202) // resposta neutra
+  if (method === 'post' && url === '/auth/verify-reset-code') return fail(400, 'Código inválido ou expirado.')
   if (method === 'post' && url === '/auth/reset-password') return fail(400, 'Este pedido já não é válido.') // sem sucesso simulado
 
   // Bolsas

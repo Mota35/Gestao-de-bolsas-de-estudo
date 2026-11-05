@@ -82,6 +82,10 @@ export function createAuthController(authService: AuthService, config: AppConfig
       await authService.requestPasswordReset(req.body.email);
       res.status(202).json(neutralReset);
     }),
+    verifyResetCode: asyncHandler(async (req, res) => {
+      const token = await authService.verifyPasswordResetCode(req.body.email, req.body.code);
+      res.json({ data: { token } });
+    }),
     resetPassword: asyncHandler(async (req, res) => {
       await authService.resetPassword(req.body.token, req.body.newPassword);
       clearAuthCookies(res);

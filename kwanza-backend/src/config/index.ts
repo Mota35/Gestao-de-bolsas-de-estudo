@@ -49,13 +49,14 @@ const envSchema = z
     BODY_LIMIT_KB: z.coerce.number().positive().default(100),
 
     // Email
-    MAIL_TRANSPORT: z.enum(['smtp', 'outbox']).default('outbox'),
+    MAIL_TRANSPORT: z.enum(['smtp', 'resend', 'outbox']).default('outbox'),
     MAIL_FROM: z.string().default('Kwanza Oportunidades <no-reply@localhost>'),
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().int().positive().default(587),
     SMTP_SECURE: bool.default(false),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
+    RESEND_API_KEY: z.string().optional(),
     // Em desenvolvimento, o transporte "outbox" escreve os emails neste directório (não vai para os logs).
     MAIL_OUTBOX_DIR: z.string().optional(),
 
@@ -89,6 +90,9 @@ const envSchema = z
       }
       if (env.MAIL_TRANSPORT === 'smtp' && !env.SMTP_HOST) {
         ctx.addIssue({ code: 'custom', path: ['SMTP_HOST'], message: 'SMTP_HOST é obrigatório com MAIL_TRANSPORT=smtp.' });
+      }
+      if (env.MAIL_TRANSPORT === 'resend' && !env.RESEND_API_KEY) {
+        ctx.addIssue({ code: 'custom', path: ['RESEND_API_KEY'], message: 'RESEND_API_KEY é obrigatório com MAIL_TRANSPORT=resend.' });
       }
       if (env.MAIL_TRANSPORT === 'outbox') {
         ctx.addIssue({ code: 'custom', path: ['MAIL_TRANSPORT'], message: 'Em produção use MAIL_TRANSPORT=smtp.' });
@@ -162,6 +166,7 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env) {
         user: e.SMTP_USER,
         pass: e.SMTP_PASS,
       },
+      resendApiKey: e.RESEND_API_KEY,
       outboxDir: e.MAIL_OUTBOX_DIR,
     },
     integrations: {

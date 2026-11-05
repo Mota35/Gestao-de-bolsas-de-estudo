@@ -64,8 +64,25 @@ export class SmtpMailer implements Mailer {
   }
 }
 
+/** Envio pela API HTTP do Resend; exige remetente/domínio validado no provider. */
+export class ResendMailer implements Mailer {
+  constructor(private readonly cfg: AppConfig['mail']) {}
+  async send(message: MailMessage): Promise<void> {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${this.cfg.resendApiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: this.cfg.from, to: [message.to], subject: message.subject, text: message.text, html: message.html }),
+    });
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      throw new Error(`Resend rejeitou o email (${response.status}): ${detail.slice(0, 300)}`);
+    }
+  }
+}
+
 export function createMailer(cfg: AppConfig['mail'], logger: Logger): Mailer {
   if (cfg.transport === 'smtp') return new SmtpMailer(cfg);
+  if (cfg.transport === 'resend') return new ResendMailer(cfg);
   const dir = cfg.outboxDir ?? '.dev-mail';
   logger.warn({ dir }, 'Transporte de email "outbox": emails gravados em ficheiros locais (apenas desenvolvimento).');
   return new FileOutboxMailer(dir);

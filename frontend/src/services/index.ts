@@ -56,6 +56,7 @@ export const authService = {
   register: (data: { name: string; email: string; password: string; role: 'estudante' | 'mentor'; newsletter: boolean }) => http.post(`/auth/register/${data.role === 'estudante' ? 'student' : 'mentor'}`, { name: data.name, email: data.email, password: data.password, termsAccepted: true, newsletterConsent: data.newsletter }).then((r) => r.data),
   logout: () => http.post('/auth/logout').then(() => undefined),
   forgotPassword: (email: string) => http.post('/auth/forgot-password', { email }).then((r) => r.data),
+  verifyResetCode: (email: string, code: string) => http.post<{ token: string }>('/auth/verify-reset-code', { email, code }).then((r) => r.data),
   resetPassword: (data: { token: string; password: string }) => http.post('/auth/reset-password', { token: data.token, newPassword: data.password }).then((r) => r.data),
 }
 

@@ -112,32 +112,35 @@ export function Footer() {
     ],
   ]
   return (
-    <footer className="bg-deep text-[#b9cdd5]">
-      <div className="wrap pb-[44px] pt-[56px]">
-        <Logo variant="footer" />
-        <p className="mt-[7px] text-[14px] leading-5">Mais clareza para escolher o próximo passo. Bolsas, orientação e pessoas que ajudam a avançar.</p>
-        <div className="mt-7 space-y-[8px] text-[13px] leading-[18px]">
-          {groups.map(([label, links]) => (
-            <p key={label}>
-              <span className="mr-3.5 inline-block">{label}</span>
-              {links.map(([text, to], i) => (
-                <span key={to}>
-                  {i > 0 && ' · '}
-                  <Link to={to} className="hover:text-white hover:underline">
-                    {text}
-                  </Link>
-                </span>
-              ))}
-            </p>
-          ))}
-        </div>
-        <p className="mt-[30px] text-[11px] leading-[17px]">
-          © 2026 Kwanza Oportunidades · Angola · PT / EN
-          <br />
-          {env.demoMode
+    <footer className="bg-[#1d5273] text-[#d5e3eb]">
+      <div className="wrap grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12 lg:py-16">
+        <section>
+          <h2 className="mb-6 text-[20px] font-bold text-white">Explorar</h2>
+          <div className="flex flex-col items-start gap-3 text-[15px]">
+            {groups[0][1].map(([text, to]) => <Link key={to} to={to} className="hover:text-white hover:underline">{text}</Link>)}
+          </div>
+        </section>
+        <section>
+          <h2 className="mb-6 text-[20px] font-bold text-white">A plataforma</h2>
+          <div className="flex flex-col items-start gap-3 text-[15px]">
+            {groups.slice(1).flatMap(([, links]) => links).map(([text, to]) => <Link key={to} to={to} className="hover:text-white hover:underline">{text}</Link>)}
+          </div>
+        </section>
+        <section>
+          <h2 className="mb-6 text-[20px] font-bold text-white">Kwanza Oportunidades</h2>
+          <p className="max-w-sm text-[15px] leading-6">Mais clareza para escolher o próximo passo. Bolsas, orientação e pessoas que ajudam a avançar.</p>
+          <Link to="/registo" className="mt-6 inline-flex min-h-12 items-center rounded-md bg-white px-5 font-semibold text-[#1d5273] hover:bg-[#edf4f7]">Criar conta</Link>
+        </section>
+      </div>
+      <div className="bg-[#103246] py-8 text-center">
+        <div className="wrap">
+          <Logo variant="footer" />
+          <p className="mt-3 text-[16px] font-semibold text-white">Bolsas, orientação e oportunidades em Angola</p>
+          <p className="mt-7 text-[13px]">© 2026 Kwanza Oportunidades · Angola · PT / EN</p>
+          <p className="mx-auto mt-2 max-w-2xl text-[12px] leading-5">{env.demoMode
             ? 'Design demonstrativo. Pessoas, oportunidades e números fictícios. Sem envios ou ligações activas.'
-            : 'Consulta sempre a fonte oficial antes de te candidatares.'}
-        </p>
+            : 'Consulta sempre a fonte oficial antes de te candidatares.'}</p>
+        </div>
       </div>
     </footer>
   )

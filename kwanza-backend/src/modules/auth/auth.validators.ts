@@ -44,6 +44,7 @@ export const registerMentorSchema = withPolicy(
 export const loginSchema = z.object({ email: emailField, password: z.string().min(1).max(128) }).strict();
 
 export const forgotPasswordSchema = z.object({ email: emailField }).strict();
+export const verifyResetCodeSchema = z.object({ email: emailField, code: z.string().regex(/^\d{6}$/, 'Indica o código de 6 dígitos.') }).strict();
 
 export const resetPasswordSchema = withPolicy(
   z.object({ token: z.string().min(20).max(200), newPassword: passwordField }).strict(),

@@ -51,7 +51,7 @@ WhatsApp, serviços/cursos, pedidos, denúncias, moderação e integrações (fa
 - **CSRF**: pedidos que alteram estado com cookie exigem `Origin`/`Referer` na lista `CORS_ORIGINS`, além de `SameSite`. CORS restrito.
 - **Senhas**: Argon2id; verificação fictícia quando o email não existe (sem diferença de tempo); política mínima de 10 caracteres.
 - **Bloqueio**: após `LOGIN_MAX_FAILURES` falhas o email fica bloqueado `LOGIN_LOCK_MINUTES` (em memória — para várias instâncias implemente `LoginThrottle` sobre Redis). Além disso, rate limiting por IP em login, registo, recuperação e acções sensíveis.
-- **Recuperação**: token de 256 bits, só o hash é guardado, validade 30 min, consumo atómico (`updateMany` condicional em transacção), revoga todas as sessões, resposta sempre neutra, link construído só com `FRONTEND_URL`, nunca registado em logs (em desenvolvimento, os emails vão para `.dev-mail/`).
+- **Recuperação**: código numérico de seis dígitos enviado por email, hash guardado na base de dados, validade limitada, consumo único, seguida de um token de redefinição de 256 bits; a resposta ao pedido é sempre neutra.
 - **Autorização** no servidor por papel e por dono do recurso (recursos de outros devolvem 404). Auditoria das acções administrativas em `audit_logs` (campos sensíveis redigidos).
 - **Dados**: Zod em todas as entradas (`.strict()`), Prisma parametrizado, limite de 100 KB por pedido, Helmet, logs com redacção de senhas/tokens/números.
 
@@ -85,7 +85,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 ```
 3. Dev: use um proxy do Vite (`/api` → `localhost:3333`) ou o mesmo "site" para `SameSite=Lax`. Em produção com domínios diferentes: HTTPS e `COOKIE_SAMESITE=none`.
-4. Rotas do frontend esperadas pelos emails: `/reset-password?token=…` e `/verify-email?token=…` (fazem `POST /auth/reset-password` e `/auth/verify-email` com `{ token }`).
+4. Para entrega real de email, configure `MAIL_TRANSPORT=resend`, `RESEND_API_KEY` e um `MAIL_FROM` num domínio validado no Resend. Alternativamente, configure `MAIL_TRANSPORT=smtp` e as variáveis `SMTP_*`. Com `MAIL_TRANSPORT=outbox` (predefinição local), as mensagens são gravadas em `kwanza-backend/.dev-mail/` e não são enviadas para caixas de email.
 5. WhatsApp: use `mentor.whatsapp.urlWithMessage` (ou `url` + `?text=${encodeURIComponent(msg)}`); é `null` se o mentor não autorizou.
 6. Respostas: `{ data, meta? }`; erros `{ error: { code, message, details?, requestId } }`.
 

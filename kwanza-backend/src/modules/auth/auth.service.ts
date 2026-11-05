@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHmac, randomInt } from 'node:crypto';
 import type { Logger } from 'pino';
 import type { AppConfig } from '../../config/index.js';
 import type { Db, Tx } from '../../db/prisma.js';
@@ -6,7 +6,7 @@ import { isUniqueViolation } from '../../db/prisma.js';
 import {
   emailVerificationEmail,
   passwordChangedEmail,
-  passwordResetEmail,
+  passwordResetCodeEmail,
 } from '../../integrations/mail/templates.js';
 import type { Mailer } from '../../integrations/mail/mailer.js';
 import type { UserRole } from '../../types/enums.js';
@@ -329,22 +329,32 @@ export class AuthService {
     });
     if (recent) return;
 
-    const token = generateToken(32);
+    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
     await db.$transaction(async (tx: Tx) => {
       await tx.passwordResetToken.updateMany({ where: { userId: user.id, usedAt: null }, data: { usedAt: new Date() } });
       await tx.passwordResetToken.create({
         data: {
           userId: user.id,
-          tokenHash: hashToken(token),
+          tokenHash: hashToken(`${user.email}:${code}`),
           expiresAt: new Date(Date.now() + config.tokens.passwordResetTtlMs),
         },
       });
     });
 
-    // O link usa exclusivamente a URL configurada (nunca o Host/Origin do pedido).
-    const link = `${config.frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
-    const mail = passwordResetEmail(user.name, link, Math.round(config.tokens.passwordResetTtlMs / 60_000));
+    const mail = passwordResetCodeEmail(user.name, code, Math.round(config.tokens.passwordResetTtlMs / 60_000));
     this.background(this.deps.mailer.send({ to: user.email, ...mail }), 'password-reset-email');
+  }
+
+  async verifyPasswordResetCode(email: string, code: string): Promise<string> {
+    const { db, config } = this.deps;
+    const user = await db.user.findUnique({ where: { email } });
+    const tokenHash = hashToken(`${email}:${code}`);
+    const row = user ? await db.passwordResetToken.findFirst({ where: { userId: user.id, tokenHash, usedAt: null, expiresAt: { gt: new Date() } } }) : null;
+    if (!row) throw new AppError(400, 'INVALID_TOKEN', 'Código inválido ou expirado.');
+    const resetToken = generateToken(32);
+    const changed = await db.passwordResetToken.updateMany({ where: { id: row.id, tokenHash, usedAt: null, expiresAt: { gt: new Date() } }, data: { tokenHash: hashToken(resetToken), expiresAt: new Date(Date.now() + Math.min(config.tokens.passwordResetTtlMs, 10 * 60_000)) } });
+    if (changed.count !== 1) throw new AppError(400, 'INVALID_TOKEN', 'Código inválido ou expirado.');
+    return resetToken;
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
