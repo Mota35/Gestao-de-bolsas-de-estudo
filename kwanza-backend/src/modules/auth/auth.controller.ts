@@ -99,6 +99,10 @@ export function createAuthController(authService: AuthService, config: AppConfig
       await authService.resendVerification(req.user!.id);
       res.status(202).json({ data: { message: 'Se o email ainda não estiver confirmado, enviámos um novo link.' } });
     }),
+    confirmEmailInDevelopment: asyncHandler(async (req, res) => {
+      await authService.confirmEmailInDevelopment(req.user!.id);
+      res.json({ data: { message: 'Email confirmado no ambiente de desenvolvimento.' } });
+    }),
     changePassword: asyncHandler(async (req, res) => {
       await authService.changePassword(req.user!.id, req.user!.sessionId, req.body.currentPassword, req.body.newPassword);
       res.json({ data: { message: 'Senha alterada. As outras sessões foram terminadas.' } });

@@ -17,6 +17,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
+import VerifyEmailPage from './pages/auth/VerifyEmailPage'
 import StudentAccountPage from './pages/student/StudentAccountPage'
 import StudentApplicationsPage from './pages/student/StudentApplicationsPage'
 import StudentDashboardPage from './pages/student/StudentDashboardPage'
@@ -59,6 +60,7 @@ export function App() {
         <Route path="registo" element={<RegisterPage />} />
         <Route path="recuperar-senha" element={<ForgotPasswordPage />} />
         <Route path="nova-senha" element={<ResetPasswordPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
       </Route>
 
       {/* A autorização real é feita pelo backend; estas guardas são só de navegação. */}

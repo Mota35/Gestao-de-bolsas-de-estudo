@@ -25,6 +25,7 @@ export function createAuthRoutes(
   r.post('/reset-password', limiters.auth, validate({ body: v.resetPasswordSchema }), c.resetPassword);
   r.post('/verify-email', limiters.auth, validate({ body: v.verifyEmailSchema }), c.verifyEmail);
   r.post('/resend-verification', mw.requireAuth, limiters.sensitive, c.resendVerification);
+  r.post('/confirm-email-development', mw.requireAuth, limiters.sensitive, c.confirmEmailInDevelopment);
   r.post('/change-password', mw.requireAuth, limiters.sensitive, validate({ body: v.changePasswordSchema }), c.changePassword);
   return r;
 }

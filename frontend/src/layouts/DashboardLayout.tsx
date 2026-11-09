@@ -2,10 +2,13 @@ import { ArrowUpRight, LogOut, Menu, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from '../components/ui/Logo'
+import { Notice } from '../components/ui/Notice'
 import { useAuth } from '../contexts/AuthContext'
 import { env } from '../lib/env'
+import { getErrorMessage } from '../lib/errors'
 import { formatToday } from '../lib/format'
 import { LanguageSelect, languageText, useLanguage } from '../contexts/LanguageContext'
+import { toast } from 'sonner'
 
 export type Area = 'estudante' | 'mentor' | 'admin'
 
@@ -109,10 +112,11 @@ function SidebarContent({ area, onNavigate, onLogout }: { area: Area; onNavigate
 }
 
 export function DashboardLayout({ area }: { area: Area }) {
-  const { user, logout } = useAuth()
+  const { user, logout, confirmEmailInDevelopment } = useAuth()
   const { language } = useLanguage()
   const tr = (pt: string, en: string) => languageText(language, pt, en)
   const [open, setOpen] = useState(false)
+  const [confirmingEmail, setConfirmingEmail] = useState(false)
   const { pathname } = useLocation()
   useEffect(() => {
     setOpen(false)
@@ -127,6 +131,18 @@ export function DashboardLayout({ area }: { area: Area }) {
       <span>{user?.name}</span>
     </span>
   )
+
+  const confirmEmail = async () => {
+    setConfirmingEmail(true)
+    try {
+      await confirmEmailInDevelopment()
+      toast.success('Email confirmado.')
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      setConfirmingEmail(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-mist lg:grid lg:grid-cols-[248px_1fr]">
@@ -173,6 +189,14 @@ export function DashboardLayout({ area }: { area: Area }) {
           </div>
         </div>
         <main className="px-10 pb-16 pt-[48px] max-lg:px-6 max-lg:pt-6">
+          {import.meta.env.DEV && area !== 'admin' && !user?.emailVerified && (
+            <Notice tone="warn" title="Confirma o teu email" className="mb-6">
+              Em desenvolvimento, confirma o email para poderes enviar denúncias e usar as funcionalidades que exigem confirmação.
+              <button type="button" className="btn mt-4" onClick={() => void confirmEmail()} disabled={confirmingEmail}>
+                {confirmingEmail ? 'A confirmar…' : 'Confirmar email'}
+              </button>
+            </Notice>
+          )}
           <Outlet />
         </main>
       </div>

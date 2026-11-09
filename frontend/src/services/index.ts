@@ -58,6 +58,9 @@ export const authService = {
   forgotPassword: (email: string) => http.post('/auth/forgot-password', { email }).then((r) => r.data),
   verifyResetCode: (email: string, code: string) => http.post<{ token: string }>('/auth/verify-reset-code', { email, code }).then((r) => r.data),
   resetPassword: (data: { token: string; password: string }) => http.post('/auth/reset-password', { token: data.token, newPassword: data.password }).then((r) => r.data),
+  verifyEmail: (token: string) => http.post('/auth/verify-email', { token }).then((r) => r.data),
+  resendVerification: () => http.post('/auth/resend-verification').then((r) => r.data),
+  confirmEmailInDevelopment: () => http.post('/auth/confirm-email-development').then((r) => r.data),
 }
 
 export const scholarshipService = {
@@ -207,7 +210,7 @@ export const adminService = {
   overview: (): Promise<AdminOverview> => http.get<AdminOverview>('/admin/overview').then((r) => r.data),
   users: (): Promise<AdminUser[]> => http.get<any>('/admin/users', { params: { page: 1, pageSize: 100 } }).then((r) => r.data.items.map((u: any) => ({ id: u.id, name: u.name, role: roleLabel(u.role), state: u.isActive ? 'Activa' : 'Suspensa', createdAt: u.createdAt, action: 'Gerir' }))),
   changeRole: (id: string, data: { role: string; state: string; reason: string }) => http.patch(`/admin/users/${id}/role`, { role: roleCode(data.role), isActive: !data.state.toLowerCase().startsWith('susp'), reason: data.reason }).then((r) => r.data),
-  mentorReviews: (): Promise<AdminMentorReview[]> => http.get<any>('/admin/mentors', { params: { page: 1, pageSize: 100 } }).then((r) => r.data.items.map((m: any) => ({ id: m.id, name: m.name, specialty: m.specialties?.[0] ?? '—', requestedAt: m.createdAt, state: statusLabel(m.verificationStatus), action: 'Rever pedido' }))),
+  mentorReviews: (): Promise<AdminMentorReview[]> => http.get<any>('/admin/mentors', { params: { page: 1, pageSize: 100 } }).then((r) => r.data.items.map((m: any) => ({ id: m.id, name: m.name, email: m.email, emailVerified: m.emailVerified, specialty: m.specialties?.[0] ?? '—', requestedAt: m.createdAt, state: statusLabel(m.verificationStatus), action: 'Rever pedido' }))),
   decideMentor: (id: string, data: { decision: string; reason: string }) => http.post(`/admin/mentors/${id}/review`, { decision: data.decision.includes('Aprovar') ? 'VERIFIED' : 'REJECTED', reason: data.reason }).then((r) => r.data),
   scholarships: (): Promise<AdminScholarshipRow[]> => http.get<any>('/admin/scholarships', { params: { page: 1, pageSize: 100, state: 'all' } }).then((r) => r.data.items.map((s: any) => ({ id: s.id, slug: s.slug, title: s.title, deadline: s.applicationDeadline?.slice(0, 10) ?? '', verification: s.verification?.status === 'VERIFIED' ? 'verificada' : 'pendente', publicationStatus: s.publicationStatus, active: s.publicationStatus !== 'ARCHIVED' }))),
   createScholarship: (data: Record<string, unknown>) => http.post('/admin/scholarships', data).then((r) => r.data),

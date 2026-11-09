@@ -14,7 +14,7 @@ export function getErrorMessage(error: unknown, fallback = 'Algo correu mal. Ten
     case 401:
       return body?.message ?? 'A sessão terminou ou os dados de acesso não estão correctos.'
     case 403:
-      return 'Não tens permissão para esta acção.'
+      return serverMessage ?? 'Não tens permissão para esta acção.'
     case 404:
       return 'Não encontrámos o que procuravas.'
     case 409:

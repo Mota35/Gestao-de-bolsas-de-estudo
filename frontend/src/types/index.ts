@@ -125,6 +125,7 @@ export interface SessionUser {
   name: string
   role: Role
   email: string
+  emailVerified: boolean
   initials: string
 }
 

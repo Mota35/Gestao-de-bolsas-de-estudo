@@ -64,6 +64,8 @@ export interface AdminUser {
 export interface AdminMentorReview {
   id: string
   name: string
+  email: string
+  emailVerified: boolean
   specialty: string
   requestedAt: string
   state: string

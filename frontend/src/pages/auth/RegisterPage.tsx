@@ -28,7 +28,7 @@ export default function RegisterPage() {
   const onSubmit = handleSubmit(async (d) => {
     try {
       await authService.register({ name: d.name.trim(), email: d.email.trim(), password: d.password, role: d.role, newsletter: !!d.newsletter })
-      toast.success('Conta criada. Já podes iniciar sessão.')
+      toast.success(d.role === 'mentor' ? 'Conta criada. Inicia sessão e confirma o email no painel de mentor.' : 'Conta criada. Já podes iniciar sessão.')
       navigate('/entrar', { replace: true })
     } catch (e) {
       const message = getErrorMessage(e)

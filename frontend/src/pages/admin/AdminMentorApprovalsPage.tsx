@@ -113,6 +113,13 @@ export default function AdminMentorApprovalsPage() {
             </Dot>
             <dl className="mt-[18px] space-y-[14px] text-[15px]">
               <div>
+                <dt className="small">Email</dt>
+                <dd>{current.email}</dd>
+                <dd className={current.emailVerified ? 'text-green' : 'text-amber-700'}>
+                  {current.emailVerified ? 'Email confirmado' : 'Email ainda não confirmado pelo mentor'}
+                </dd>
+              </div>
+              <div>
                 <dt className="small">Especialidade</dt>
                 <dd>{current.specialty}</dd>
               </div>
@@ -125,6 +132,11 @@ export default function AdminMentorApprovalsPage() {
                 <dd>Descrição do perfil, serviços propostos, preços e consentimento para contacto por WhatsApp.</dd>
               </div>
             </dl>
+            {!current.emailVerified && (
+              <Notice tone="warn" title="A aprovação está bloqueada" className="mt-5">
+                O mentor precisa abrir o link enviado para o email e confirmá-lo. Pede-lhe para iniciar sessão no painel de mentor e reenviar a confirmação, se necessário.
+              </Notice>
+            )}
             <p className="small mt-[18px] text-[13px]">O contacto por WhatsApp só fica visível se o mentor o autorizar e o perfil for aprovado.</p>
           </section>
           <form onSubmit={submit} className="card p-6 pb-[28px]" noValidate>

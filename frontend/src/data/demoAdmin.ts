@@ -34,10 +34,10 @@ export const demoAdminUsers: AdminUser[] = [
 ]
 
 export const demoMentorReviews: AdminMentorReview[] = [
-  { id: 'm1', name: 'Joana Tavares', specialty: 'Escrita académica', requestedAt: '25 de outubro de 2026', state: 'Pendente', action: 'Analisar' },
-  { id: 'm2', name: 'Celina Manuel', specialty: 'Bolsas e candidaturas', requestedAt: '24 de outubro de 2026', state: 'Pendente', action: 'Analisar' },
-  { id: 'm3', name: 'Daniel Nzinga', specialty: 'Empregabilidade', requestedAt: '23 de outubro de 2026', state: 'Em revisão', action: 'Continuar' },
-  { id: 'm4', name: 'Rosa Chimuco', specialty: 'Línguas', requestedAt: '20 de outubro de 2026', state: 'Rejeitada · exemplo', action: 'Consultar motivo' },
+  { id: 'm1', name: 'Joana Tavares', email: 'joana@example.test', emailVerified: false, specialty: 'Escrita académica', requestedAt: '25 de outubro de 2026', state: 'Pendente', action: 'Analisar' },
+  { id: 'm2', name: 'Celina Manuel', email: 'celina@example.test', emailVerified: true, specialty: 'Bolsas e candidaturas', requestedAt: '24 de outubro de 2026', state: 'Pendente', action: 'Analisar' },
+  { id: 'm3', name: 'Daniel Nzinga', email: 'daniel@example.test', emailVerified: true, specialty: 'Empregabilidade', requestedAt: '23 de outubro de 2026', state: 'Em revisão', action: 'Continuar' },
+  { id: 'm4', name: 'Rosa Chimuco', email: 'rosa@example.test', emailVerified: true, specialty: 'Línguas', requestedAt: '20 de outubro de 2026', state: 'Rejeitada · exemplo', action: 'Consultar motivo' },
 ]
 
 export const demoReports: AdminReport[] = [

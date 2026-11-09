@@ -122,7 +122,9 @@ export class AuthService {
       throw err;
     }
 
-    this.background(this.sendVerificationEmail(user.id, user.name, user.email), 'verification-email');
+    if (this.deps.config.env !== 'development') {
+      this.background(this.sendVerificationEmail(user.id, user.name, user.email), 'verification-email');
+    }
     return toPublicUser(user);
   }
 
@@ -311,6 +313,28 @@ export class AuthService {
       const row = await tx.emailVerificationToken.findUnique({ where: { tokenHash } });
       if (!row) throw new AppError(400, 'INVALID_TOKEN', 'Link inválido ou expirado.');
       await tx.user.update({ where: { id: row.userId }, data: { emailVerifiedAt: now } });
+    });
+  }
+
+  async confirmEmailInDevelopment(userId: string): Promise<void> {
+    const { config, db, audit } = this.deps;
+    if (config.env !== 'development') throw forbidden('A confirmação manual só está disponível em desenvolvimento.');
+    const user = await db.user.findUnique({ where: { id: userId }, select: { id: true, emailVerifiedAt: true } });
+    if (!user) throw notFound('Utilizador não encontrado.');
+    if (user.emailVerifiedAt) return;
+
+    const now = new Date();
+    await db.$transaction(async (tx: Tx) => {
+      const result = await tx.user.updateMany({ where: { id: userId, emailVerifiedAt: null }, data: { emailVerifiedAt: now } });
+      if (result.count === 1) {
+        await audit.record({
+          actorUserId: userId,
+          action: 'VERIFY',
+          entityType: 'USER',
+          entityId: userId,
+          metadata: { method: 'development_manual' },
+        }, tx);
+      }
     });
   }
 

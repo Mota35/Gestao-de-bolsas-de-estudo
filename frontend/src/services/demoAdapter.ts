@@ -17,9 +17,9 @@ interface Account extends SessionUser {
 }
 
 const accounts: Record<string, Account> = {
-  'ana@estudante.example': { id: 'u1', name: 'Ana Mavungo', role: 'estudante', email: 'ana@estudante.example', initials: 'AM' },
-  'celina@mentor.example': { id: 'u2', name: 'Celina Manuel', role: 'mentor', email: 'celina@mentor.example', initials: 'CM' },
-  'lidia@admin.example': { id: 'u6', name: 'Lídia Santos', role: 'admin', email: 'lidia@admin.example', initials: 'LS' },
+  'ana@estudante.example': { id: 'u1', name: 'Ana Mavungo', role: 'estudante', email: 'ana@estudante.example', emailVerified: true, initials: 'AM' },
+  'celina@mentor.example': { id: 'u2', name: 'Celina Manuel', role: 'mentor', email: 'celina@mentor.example', emailVerified: true, initials: 'CM' },
+  'lidia@admin.example': { id: 'u6', name: 'Lídia Santos', role: 'admin', email: 'lidia@admin.example', emailVerified: true, initials: 'LS' },
 }
 
 const favorites = new Set<string>(demoSavedIds)
@@ -242,6 +242,7 @@ function route(method: string, url: string, params: Params, body: Record<string,
       name,
       email,
       role: body.role === 'mentor' ? 'mentor' : 'estudante',
+      emailVerified: true,
       initials: name
         .split(/\s+/)
         .map((w) => w[0])

@@ -8,6 +8,7 @@ interface AuthValue {
   loading: boolean
   login: (email: string, password: string) => Promise<SessionUser>
   logout: () => Promise<void>
+  confirmEmailInDevelopment: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -45,7 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout])
+  const confirmEmailInDevelopment = useCallback(async () => {
+    await authService.confirmEmailInDevelopment()
+    setUser((current) => current ? { ...current, emailVerified: true } : current)
+  }, [])
+
+  const value = useMemo(() => ({ user, loading, login, logout, confirmEmailInDevelopment }), [user, loading, login, logout, confirmEmailInDevelopment])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
