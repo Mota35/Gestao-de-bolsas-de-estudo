@@ -23,6 +23,7 @@ export interface Scholarship {
   isDemo: boolean
   /** Ligação oficial validada pelo backend. Nunca é inventada no frontend. */
   officialUrl?: string
+  photo?: string
   sourceName?: string
   summary?: string
   eligibility?: string[]

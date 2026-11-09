@@ -41,6 +41,7 @@ export const scholarshipFields = z.object({
   openingDate: calendarDate.nullable().optional(),
   applicationDeadline: calendarDate.nullable().optional(),
   officialUrl: httpUrl,
+  imageData: z.string().regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/).max(4_200_000).nullable().optional(),
   externalId: z.string().trim().max(200).nullable().optional(),
 });
 

@@ -76,6 +76,7 @@ export class ScholarshipsService {
       applicationDeadline: formatCalendarDate(row.applicationDeadline),
       deadlineTimezone: this.deps.config.defaultTimezone,
       officialUrl: row.officialUrl,
+      imageData: row.imageData ?? undefined,
       source: link
         ? { id: link.source.id, name: link.source.name, url: link.sourceUrl, domain: link.source.domain, type: link.source.sourceType }
         : null,

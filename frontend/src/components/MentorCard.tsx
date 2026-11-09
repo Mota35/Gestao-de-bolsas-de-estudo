@@ -6,6 +6,7 @@ import { Dot } from './ui/Notice'
 export function MentorCard({ m }: { m: Mentor }) {
   return (
     <article className="card flex flex-col p-6 pb-[23px]">
+      {m.photo && <img src={m.photo} alt={`Retrato de ${m.name}`} className="mb-5 h-[190px] w-full rounded-xl object-cover" />}
       <h3 className="text-[22px] font-bold leading-7 tracking-tight">{m.name}</h3>
       <p className="mt-[1px] text-[12px] text-muted">{m.isDemo ? 'Pessoa fictícia · Angola' : m.location}</p>
       <Dot tone={m.verified ? 'green' : 'amber'} className="mt-[17px]">

@@ -148,6 +148,7 @@ export default function MentorDashboardPage() {
         </section>
         <section className="card p-6 pb-[24px]">
           <h2 className="display text-[24px] leading-8">O teu perfil e o contacto público</h2>
+          {p?.photo && <img src={p.photo} alt="Fotografia do perfil profissional" className="mt-4 h-[180px] w-full rounded-xl object-cover" />}
           <Dot tone="gray" className="mt-[16px]">
             {p?.whatsappConsent ? 'WhatsApp divulgado' : 'WhatsApp não divulgado'}
           </Dot>

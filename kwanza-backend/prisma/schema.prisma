@@ -281,6 +281,7 @@ model Scholarship {
   openingDate           DateTime?                    @db.Date
   applicationDeadline   DateTime?                    @db.Date
   officialUrl           String                       @db.VarChar(2048)
+  imageData             String?                      @db.Text
   externalId            String?                      @db.VarChar(200)
   publicationStatus     ScholarshipPublicationStatus @default(DRAFT)
   verificationStatus    VerificationStatus           @default(UNVERIFIED)

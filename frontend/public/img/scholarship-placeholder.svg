@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title">
+  <title id="title">Imagem de bolsa de estudo indisponível</title>
+  <rect width="800" height="420" fill="#e3e7e9"/>
+  <g fill="none" stroke="#87949a" stroke-linecap="round" stroke-linejoin="round" stroke-width="12">
+    <path d="M400 151c-50-34-105-39-155-16v145c50-23 105-18 155 16m0-145c50-34 105-39 155-16v145c-50-23-105-18-155 16z"/>
+    <path d="M400 151v145m-122-117c30-9 58-5 83 7m156-7c-30-9-58-5-83 7m-156 27c30-9 58-5 83 7m156-7c-30-9-58-5-83 7"/>
+  </g>
+</svg>

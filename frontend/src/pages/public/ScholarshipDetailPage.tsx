@@ -74,11 +74,12 @@ function Detail({ s }: { s: Scholarship }) {
       <div className="bg-page pb-[64px] pt-9">
         <div className="wrap grid items-start gap-8 lg:grid-cols-[1fr_350px]">
           <div className="space-y-6">
+            <img src={s.photo || '/img/scholarship-placeholder.svg'} alt={`Imagem de ${s.title}`} className="max-h-[380px] w-full rounded-2xl object-cover" />
             <Notice tone="success" title="Candidata-te apenas na fonte oficial">
               Não recolhemos documentos pessoais nem processamos candidaturas.{demo ? ' Os dados desta bolsa são ilustrativos.' : ''}
             </Notice>
 
-            <section className="card p-6">
+            <section id="descricao" className="card scroll-mt-6 p-6">
               <h2 className="text-[24px] font-bold leading-8">Sobre a oportunidade</h2>
               <p className="mt-[16px] text-[16px] leading-6 text-muted">{s.summary}</p>
               <h3 className="mb-[16px] mt-[22px] text-[20px] font-bold">Quem pode candidatar-se</h3>

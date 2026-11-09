@@ -27,7 +27,7 @@ const scholarshipFromApi = (s: any): Scholarship => ({
   level: levelFromApi[s.educationLevel?.[0] ?? s.level] ?? s.level ?? 'outros', area: s.studyAreas?.[0] ?? s.area ?? '', funding: fundingFromApi[s.fundingType ?? s.funding] ?? s.funding ?? 'outro',
   modality: modeFromApi(s.studyMode ?? s.modality), deadline: s.applicationDeadline ?? s.deadline ?? '', publishedAt: s.createdAt ?? s.publishedAt, updatedAt: s.updatedAt ?? s.createdAt,
   verification: (s.verification?.status ?? s.verificationStatus) === 'VERIFIED' || s.verification === 'verificada' ? 'verificada' : 'pendente', isDemo: false, officialUrl: s.officialUrl,
-  sourceName: s.source?.name, summary: s.description, eligibility: s.eligibilityCriteria ? [s.eligibilityCriteria] : s.eligibility ?? [], documents: s.requiredDocuments ?? s.documents ?? [],
+  sourceName: s.source?.name, summary: s.description, eligibility: s.eligibilityCriteria ? [s.eligibilityCriteria] : s.eligibility ?? [], documents: s.requiredDocuments ?? s.documents ?? [], photo: s.imageData ?? s.photo ?? undefined,
 })
 const scholarshipQuery = (q: ScholarshipQuery) => clean({
   q: q.q, country: q.pais, level: q.nivel?.map((x) => levelToApi[x]).join(','), area: q.area, funding: q.financiamento === 'integral' ? 'FULL' : q.financiamento === 'parcial' ? 'PARTIAL' : q.financiamento ? 'OTHER' : undefined,

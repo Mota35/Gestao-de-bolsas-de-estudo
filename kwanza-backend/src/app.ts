@@ -114,6 +114,7 @@ export function createApp(deps: AppDeps): { app: Express; authService: AuthServi
   app.use(limits.global);
   // Fotos de perfil são enviadas como data URL; isolamos o limite maior neste único endpoint.
   app.use('/api/v1/mentors/me/photo', express.json({ limit: '5mb', strict: true }));
+  app.use('/api/v1/admin/scholarships', express.json({ limit: '5mb', strict: true }));
   app.use(express.json({ limit: config.bodyLimit, strict: true }));
   app.use(cookieParser());
   app.use(csrfOriginCheck(config));

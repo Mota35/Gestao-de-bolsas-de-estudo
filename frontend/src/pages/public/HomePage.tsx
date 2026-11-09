@@ -1,9 +1,8 @@
-import { BadgeCheck, Check, Compass, GraduationCap, Link2, Lock, Search, ShieldCheck } from 'lucide-react'
+import { Check, CircleHelp, Compass, GraduationCap, Minus, Plus, Search } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MentorCard } from '../../components/MentorCard'
 import { ScholarshipCard } from '../../components/ScholarshipCard'
-import { FaqItem } from '../../components/ui/Faq'
 import { Notice } from '../../components/ui/Notice'
 import { ErrorState, Loading } from '../../components/ui/States'
 import { SelectField } from '../../components/ui/Field'
@@ -21,42 +20,40 @@ function Eyebrow({ children, light = false }: { children: string; light?: boolea
 function Hero() {
   return (
     <section className="bg-white">
-      <div className="wrap grid items-center gap-x-[76px] pb-[48px] pt-[64px] lg:grid-cols-[1fr_596px] max-lg:pb-8 max-lg:pt-6">
-        <div className="max-lg:order-1">
-          <p className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-green">
-            <span className="max-lg:hidden">De Angola para novas possibilidades</span>
-            <span className="lg:hidden">De Angola para o mundo</span>
-          </p>
-          <h1 className="display mt-[20px] text-[56px] leading-[66px] max-lg:mt-4 max-lg:text-[40px] max-lg:leading-[44px]">O teu próximo passo começa com uma oportunidade.</h1>
-          <p className="lead mt-[30px] max-w-[560px] text-[18px] leading-[27px] max-lg:mt-6">
-            Descobre bolsas de estudo e encontra mentores para preparar o teu caminho, com informação clara e fontes à vista.
-          </p>
-          <div className="mt-[34px] flex flex-wrap gap-3 max-lg:flex-col">
-            <Link to="/bolsas" className="btn btn-primary">
-              <Search size={18} aria-hidden /> Encontrar uma bolsa
-            </Link>
-            <Link to="/mentores" className="btn">
-              Conhecer mentores
-            </Link>
+      <div className="wrap py-8 lg:w-full lg:max-w-none lg:px-0 lg:py-0">
+        <div className="relative isolate overflow-hidden rounded-2xl bg-navy lg:min-h-[560px] lg:rounded-none">
+          <img src="/img/edificio-isptec.jpg" alt="Edifício do ISPTEC em Luanda" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#092333]/95 via-[#092333]/75 to-[#092333]/15" aria-hidden="true" />
+          <div className="wrap flex min-h-[560px] items-center py-16 max-lg:min-h-0 max-lg:py-10">
+            <div className="max-w-[650px]">
+              <p className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#8ce0bd]">
+                <span className="max-lg:hidden">De Angola para novas possibilidades</span>
+                <span className="lg:hidden">De Angola para o mundo</span>
+              </p>
+              <h1 className="display mt-[20px] !text-white text-[56px] leading-[66px] max-lg:mt-4 max-lg:text-[40px] max-lg:leading-[44px]">O teu próximo passo começa com uma oportunidade.</h1>
+              <p className="lead mt-[30px] max-w-[560px] !text-white/85 text-[18px] leading-[27px] max-lg:mt-6">
+                Descobre bolsas de estudo e encontra mentores para preparar o teu caminho, com informação clara e fontes à vista.
+              </p>
+              <div className="mt-[34px] flex flex-wrap gap-3 max-lg:flex-col">
+                <Link to="/bolsas" className="btn btn-primary">
+                  <Search size={18} aria-hidden /> Encontrar uma bolsa
+                </Link>
+                <Link to="/mentores" className="btn border-white/50 !bg-white/10 !text-white hover:!bg-white/20">
+                  Conhecer mentores
+                </Link>
+              </div>
+              <p className="small mt-[24px] !text-white/75 max-lg:hidden">Explorar é gratuito. As mentorias têm preços definidos por cada mentor.</p>
+              <p className="small mt-6 !text-white/75 lg:hidden">Explorar é gratuito. Mentorias podem ser pagas.</p>
+            </div>
           </div>
-          <p className="small mt-[24px] max-lg:hidden">Explorar é gratuito. As mentorias têm preços definidos por cada mentor.</p>
-        </div>
-        <div className="max-lg:order-2 max-lg:mt-6">
-          <img
-            src="/img/hero.jpg"
-            alt="Três estudantes angolanos a conversar à mesa num campus (imagem ilustrativa)"
-            className="h-[440px] w-full rounded-2xl object-cover max-lg:h-[270px]"
-          />
-          <p className="mt-[16px] flex items-center gap-3 text-[14px] text-muted max-lg:hidden">
-            <Compass size={20} strokeWidth={1.6} className="text-green" aria-hidden /> Talento angolano. Horizontes sem fronteiras.
+          <p className="absolute bottom-7 right-[max(24px,calc((100vw-1232px)/2))] flex items-center gap-3 text-[14px] text-white/90 max-lg:hidden">
+            <Compass size={20} strokeWidth={1.6} className="text-[#8ce0bd]" aria-hidden /> Talento angolano. Horizontes sem fronteiras.
           </p>
         </div>
-        <p className="small order-3 mt-6 lg:hidden">Explorar é gratuito. Mentorias podem ser pagas.</p>
       </div>
     </section>
   )
 }
-
 function SearchBand() {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
@@ -130,35 +127,6 @@ function Featured() {
             ? 'As oportunidades nesta apresentação são fictícias. “Verificada” representa um estado de demonstração, não uma validação real.'
             : 'Verificação e candidatura são estados diferentes. Consulta sempre a fonte oficial.'}
         </Notice>
-      </div>
-    </section>
-  )
-}
-
-const steps = [
-  { icon: Search, n: '01', t: 'Descobre', d: 'Filtra por nível, área, país e financiamento. Encontra o que faz sentido para ti.' },
-  { icon: ShieldCheck, n: '02', t: 'Confirma', d: 'Consulta a fonte, os requisitos e o prazo. A candidatura é feita no site oficial.' },
-  { icon: Compass, n: '03', t: 'Prepara-te', d: 'Guarda oportunidades e procura uma mentoria paga se precisares de orientação.' },
-]
-
-function Steps() {
-  return (
-    <section className="bg-white py-16 max-lg:hidden">
-      <div className="wrap">
-        <Eyebrow>Um caminho mais claro</Eyebrow>
-        <h2 className="h-page text-[30px] leading-9">Da descoberta à preparação, passo a passo</h2>
-        <ol className="mt-[34px] grid gap-5 md:grid-cols-3">
-          {steps.map(({ icon: Icon, n, t, d }) => (
-            <li key={n} className="card rounded-2xl !bg-mist px-7 pb-[30px] pt-6">
-              <div className="flex items-start justify-between">
-                <Icon size={24} strokeWidth={1.6} className="text-green" aria-hidden />
-                <span className="text-[24px] font-light leading-8 text-muted">{n}</span>
-              </div>
-              <h3 className="display mt-[22px] text-[22px] leading-7">{t}</h3>
-              <p className="mt-[16px] text-[14.5px] leading-[21px] text-muted">{d}</p>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   )
@@ -276,40 +244,6 @@ function Latest() {
   )
 }
 
-function Transparency() {
-  const items = [
-    { icon: Link2, t: 'Fontes identificadas', d: 'O edital oficial é a referência final.' },
-    { icon: BadgeCheck, t: 'Verificação explicada', d: 'Um perfil pendente não é um perfil verificado.' },
-    { icon: Lock, t: 'Dados mínimos', d: 'Sem documentos privados ou contactos expostos sem consentimento.' },
-  ]
-  return (
-    <section className="bg-mist py-[72px] max-lg:hidden">
-      <div className="wrap grid gap-[60px] lg:grid-cols-[1fr_440px]">
-        <div>
-          <Eyebrow>Informação com responsabilidade</Eyebrow>
-          <h2 className="h-page text-[30px] leading-9">Transparência, sem atalhos nem promessas</h2>
-          <p className="lead mt-[28px] max-w-[670px] text-[16.5px] leading-6">
-            Identificamos a origem de cada oportunidade e distinguimos a verificação da plataforma do estado da candidatura. Nenhuma mentoria garante uma bolsa.
-          </p>
-          <Link to="/sobre-nos" className="btn mt-[22px]">
-            Conhecer os nossos princípios
-          </Link>
-        </div>
-        <ul className="space-y-[18px]">
-          {items.map(({ icon: Icon, t, d }) => (
-            <li key={t} className="flex gap-[14px]">
-              <Icon size={24} strokeWidth={1.6} className="mt-[2px] shrink-0 text-green" aria-hidden />
-              <div>
-                <h3 className="text-[16px] font-semibold leading-6">{t}</h3>
-                <p className="mt-[3px] text-[14px] leading-[21px] text-muted">{d}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
 
 function BecomeMentor() {
   return (
@@ -330,24 +264,70 @@ function BecomeMentor() {
   )
 }
 
-function Faq() {
+const homeFaqTopics = [
+  { id: 'externa', label: 'Bolsa Externa', items: [
+    { q: 'Onde encontro bolsas de estudo no estrangeiro?', a: 'Explora as oportunidades disponíveis e confirma sempre os requisitos e prazos no edital e no portal oficial da instituição.' },
+    { q: 'Onde faço a candidatura para uma bolsa externa?', a: 'A candidatura é feita no canal oficial indicado pela instituição. A Kwanza não recebe documentos nem submete candidaturas.' },
+  ] },
+  { id: 'interna', label: 'Bolsa Interna', items: [
+    { q: 'Como encontro bolsas para estudar em Angola?', a: 'Pesquisa as oportunidades por país e nível de ensino. Confirma as condições actualizadas directamente na fonte oficial.' },
+    { q: 'A Kwanza atribui ou garante uma bolsa interna?', a: 'Não. A atribuição cabe à instituição responsável e depende dos critérios e do processo definidos no edital.' },
+  ] },
+  { id: 'candidatura', label: 'Candidatura', items: [
+    { q: 'Que documentos devo preparar?', a: 'Consulta a lista de documentos e os formatos exigidos no edital oficial. Envia-os apenas pelos canais da instituição.' },
+    { q: 'Posso candidatar-me depois do prazo?', a: 'Um prazo expirado não indica uma candidatura aberta. Confirma com a instituição se existe uma nova edição.' },
+  ] },
+  { id: 'pagamento', label: 'Pagamento', items: [
+    { q: 'Procurar bolsas na plataforma tem algum custo?', a: 'Não. A pesquisa de bolsas é gratuita. Cursos e mentorias podem ter preços definidos pelos respectivos profissionais.' },
+    { q: 'Pagar uma mentoria garante a obtenção de uma bolsa?', a: 'Não. Nenhuma mentoria garante uma bolsa; a decisão é da instituição responsável.' },
+  ] },
+  { id: 'renovacao', label: 'Renovação', items: [
+    { q: 'Como posso renovar uma bolsa?', a: 'As regras de renovação variam. Consulta o edital, o contrato ou os serviços oficiais da instituição que atribuiu a bolsa.' },
+    { q: 'A plataforma trata da renovação da minha bolsa?', a: 'Não. A renovação deve ser pedida directamente à instituição, de acordo com as condições oficiais.' },
+  ] },
+]
+
+function HomeFaqRow({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
   return (
-    <section className="bg-white py-[56px] max-lg:hidden">
+    <article className="rounded-xl border border-line bg-white px-5 sm:px-6">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="flex min-h-[82px] w-full items-center gap-4 text-left">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy text-white"><CircleHelp size={23} aria-hidden /></span>
+        <span className="flex-1 text-[17px] font-semibold leading-6 text-ink">{q}</span>
+        {open ? <Minus size={20} className="shrink-0 text-ink" aria-hidden /> : <Plus size={20} className="shrink-0 text-ink" aria-hidden />}
+      </button>
+      {open && <p className="pb-5 pl-14 pr-8 text-[14px] leading-6 text-muted">{a}</p>}
+    </article>
+  )
+}
+
+function Faq() {
+  const [topicId, setTopicId] = useState(homeFaqTopics[0].id)
+  const topic = homeFaqTopics.find((item) => item.id === topicId) ?? homeFaqTopics[0]
+  return (
+    <section className="bg-white py-[64px] max-lg:py-12">
       <div className="wrap">
-        <div className="mb-[14px] flex items-center justify-between">
-          <h2 className="h-page text-[30px] leading-9">Antes de começares</h2>
-          <Link to="/perguntas-frequentes" className="btn">
-            Todas as perguntas
-          </Link>
+        <header className="text-center">
+          <h2 className="display text-[42px] leading-tight max-sm:text-[32px]">Perguntas frequentes</h2>
+          <p className="mx-auto mt-3 max-w-[900px] text-[17px] leading-7 text-muted max-sm:text-[15px]">Estas são algumas das perguntas mais comuns sobre bolsas e candidaturas. Não encontraste o que procuras? Fala com a nossa equipa.</p>
+        </header>
+        <div className="mx-auto mt-10 flex max-w-[940px] flex-wrap justify-center gap-3" role="tablist" aria-label="Temas de perguntas frequentes">
+          {homeFaqTopics.map((item) => (
+            <button key={item.id} id={`faq-tab-${item.id}`} type="button" role="tab" aria-selected={topicId === item.id} aria-controls="faq-topic-panel" onClick={() => setTopicId(item.id)} className={`min-h-[54px] rounded-full border px-7 text-[15px] font-semibold transition-colors ${topicId === item.id ? 'border-navy bg-navy text-white' : 'border-line bg-white text-ink hover:border-navy'}`}>
+              {item.label}
+            </button>
+          ))}
         </div>
-        <FaqItem q="É preciso pagar para procurar bolsas?" a="Não. A consulta de oportunidades é gratuita. As mentorias e os cursos podem ser pagos." />
-        <FaqItem q="A candidatura é feita aqui?" a="Não. Consulta os detalhes e segue as instruções do site oficial da instituição." />
-        <FaqItem q="Uma mentoria garante a atribuição de uma bolsa?" a="Não. As decisões pertencem às instituições e dependem dos critérios de cada edital." />
+        <div id="faq-topic-panel" role="tabpanel" aria-labelledby={`faq-tab-${topic.id}`} className="mx-auto mt-10 max-w-[1080px] space-y-4">
+          {topic.items.map((item) => <HomeFaqRow key={item.q} q={item.q} a={item.a} />)}
+        </div>
+        <div className="mt-12 text-center">
+          <Link to="/perguntas-frequentes" className="btn btn-primary min-h-[58px] rounded-none px-10 text-[16px]">Ver todas as perguntas</Link>
+        </div>
       </div>
     </section>
   )
 }
-
 export default function HomePage() {
   useDocumentTitle('Início')
   return (
@@ -355,11 +335,9 @@ export default function HomePage() {
       <Hero />
       <SearchBand />
       <Featured />
-      <Steps />
       <Mentors />
       <Guide />
       <Latest />
-      <Transparency />
       <BecomeMentor />
       <Faq />
     </>
